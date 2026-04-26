@@ -14,8 +14,16 @@
 const express = require("express");
 const router = express.Router();
 const guestController = require("../controllers/guest.controllers");
+const authMiddleware = require("../middlewares/auth.middleware");
+const roleMiddleware = require("../middlewares/role.middleware");
 
 router.get("/", guestController.getAllGuest);
+// router.get(
+//   "/",
+//   authMiddleware,
+//   roleMiddleware(["superadmin", "admin", "operator", "guest"]),
+//   guestController.getAllGuest
+// );
 
 router.get("/:id", guestController.getGuestById);
 

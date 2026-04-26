@@ -1,15 +1,60 @@
 const express = require("express");
 const router = express.Router();
-const authController = require("../controllers/auth.controllers");
-const { verifyToken, checkRole } = require("../middlewares/auth.middleware");
 
-// router.post("/register", authController.registerUser);
-router.post("/login", authController.login);
+const authMiddleware = require("../middlewares/auth.middleware");
+const roleMiddleware = require("../middlewares/role.middleware");
+
+const {
+  login,
+  register,
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
+} = require("../controllers/auth.controllers");
+
+// =========================
+// AUTH
+// =========================
+router.post("/login", login);
+
+// REGISTER (superadmin only)
 router.post(
   "/register",
-  verifyToken,
-  checkRole("superadmin"),
-  authController.registerUser
+  authMiddleware,
+  roleMiddleware(["superadmin"]),
+  register
+);
+
+// =========================
+// USER MANAGEMENT (superadmin only)
+// =========================
+router.get(
+  "/users",
+  authMiddleware,
+  roleMiddleware(["superadmin"]),
+  getAllUsers
+);
+
+router.get(
+  "/users/:id",
+  authMiddleware,
+  roleMiddleware(["superadmin"]),
+  getUserById
+);
+
+router.put(
+  "/users/:id",
+  authMiddleware,
+  roleMiddleware(["superadmin"]),
+  updateUser
+);
+
+router.delete(
+  "/users/:id",
+  authMiddleware,
+  roleMiddleware(["superadmin"]),
+  deleteUser
 );
 
 module.exports = router;

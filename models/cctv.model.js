@@ -1,4 +1,5 @@
 const db = require("../config/db");
+
 const getCurrentDateTime = () => {
   const now = new Date();
 
@@ -12,14 +13,14 @@ const getCurrentDateTime = () => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
 
-const Guest = {
+const CCTV = {
   getAll: async () => {
-    const [rows] = await db.query("SELECT * FROM guest");
+    const [rows] = await db.query("SELECT * FROM cctv ORDER BY name ASC");
     return rows;
   },
 
   getById: async (id) => {
-    const [rows] = await db.query("SELECT * FROM guest WHERE id = ?", [id]);
+    const [rows] = await db.query("SELECT * FROM cctv WHERE id = ?", [id]);
     return rows[0];
   },
 
@@ -28,7 +29,7 @@ const Guest = {
 
     const newData = {
       ...data,
-      category: "server",
+      category: "security",
       createdAt: now,
       updatedAt: now,
     };
@@ -40,29 +41,39 @@ const Guest = {
     const values = Object.values(newData);
 
     const [result] = await db.query(
-      `INSERT INTO guest (${columns}) VALUES (${placeholders})`,
+      `INSERT INTO cctv (${columns}) VALUES (${placeholders})`,
       values
     );
+
     return result;
   },
 
   update: async (id, data) => {
-    const columns = Object.keys(data)
+    const now = getCurrentDateTime();
+
+    const updatedData = {
+      ...data,
+      updatedAt: now,
+    };
+
+    const columns = Object.keys(updatedData)
       .map((key) => `${key} = ?`)
       .join(", ");
-    const values = [...Object.values(data), id];
+
+    const values = [...Object.values(updatedData), id];
 
     const [result] = await db.query(
-      `UPDATE guest SET ${columns} WHERE id = ?`,
+      `UPDATE cctv SET ${columns} WHERE id = ?`,
       values
     );
+
     return result.affectedRows;
   },
 
   delete: async (id) => {
-    const [result] = await db.query("DELETE FROM guest WHERE id = ?", [id]);
+    const [result] = await db.query("DELETE FROM cctv WHERE id = ?", [id]);
     return result.affectedRows;
   },
 };
 
-module.exports = Guest;
+module.exports = CCTV;

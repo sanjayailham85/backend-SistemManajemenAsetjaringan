@@ -36,8 +36,10 @@ const getGuestById = async (req, res) => {
 
     const result = {
       id: guest.id,
-      instanceName: guest.instanceName,
+      name: guest.name,
       ip: guest.ip,
+      authUsername: guest.authUsername,
+      authPassword: guest.authPassword,
       status: guest.status,
       cpu: guest.cpu,
       ram: guest.ram,
@@ -46,14 +48,41 @@ const getGuestById = async (req, res) => {
       auth: guest.auth,
       osVersion: guest.osVersion,
       domainInstance: guest.domainInstance,
+      model: guest.model,
+      createdAt: physical.createdAt,
+      updatedAt: physical.updatedAt,
       host: host
         ? {
             id: host.id,
             name: host.name,
+            ip: host.ip,
+            authUsername: host.authUsername,
+            authPassword: host.authPassword,
+            version: host.version,
+            serverDevice: host.serverDevice,
+            status: host.status,
+            detail: host.detail,
+            createdAt: physical.createdAt,
+            updatedAt: physical.updatedAt,
             physical: physical
               ? {
                   id: physical.id,
                   name: physical.name,
+                  ip: physical.ip,
+                  authUsername: physical.authUsername,
+                  authPassword: physical.authPassword,
+                  owner: physical.owner,
+                  ownerContact: physical.ownerContact,
+                  year: physical.year,
+                  model: physical.model,
+                  cpu: physical.cpu,
+                  ram: physical.ram,
+                  storage: physical.storage,
+                  status: physical.status,
+                  detail: physical.detail,
+                  image: physical.image || null,
+                  createdAt: physical.createdAt,
+                  updatedAt: physical.updatedAt,
                   rack: rack
                     ? {
                         id: rack.id,
@@ -76,10 +105,11 @@ const getGuestById = async (req, res) => {
 const createGuest = async (req, res) => {
   try {
     const {
-      instanceName,
+      name,
       ip,
       hostId,
-      auth,
+      authUsername,
+      authPassword,
       owner,
       domainInstance,
       ram,
@@ -91,7 +121,7 @@ const createGuest = async (req, res) => {
       detail,
     } = req.body;
 
-    if (!instanceName || !ip || !hostId)
+    if (!name || !ip || !hostId)
       return res
         .status(400)
         .json({ message: "Name, IP, and Host ID are required" });
@@ -99,10 +129,11 @@ const createGuest = async (req, res) => {
     const id = uuidv4();
     await Guest.create({
       id,
-      instanceName,
+      name,
       ip,
       hostId,
-      auth,
+      authUsername,
+      authPassword,
       owner,
       domainInstance,
       ram,
@@ -125,10 +156,11 @@ const updateGuest = async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      instanceName,
+      name,
       ip,
       hostId,
-      auth,
+      authUsername,
+      authPassword,
       owner,
       domainInstance,
       ram,
@@ -141,10 +173,11 @@ const updateGuest = async (req, res) => {
     } = req.body;
 
     const affectedRows = await Guest.update(id, {
-      instanceName,
+      name,
       ip,
       hostId,
-      auth,
+      authUsername,
+      authPassword,
       owner,
       domainInstance,
       ram,

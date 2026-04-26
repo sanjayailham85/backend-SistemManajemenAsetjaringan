@@ -1,0 +1,28 @@
+const roleMiddleware = (allowedRoles) => {
+  return (req, res, next) => {
+    try {
+      const user = req.user;
+
+      if (!user) {
+        return res.status(401).json({
+          message: "Unauthorized",
+        });
+      }
+
+      // cek apakah role user termasuk yang diizinkan
+      if (!allowedRoles.includes(user.role)) {
+        return res.status(403).json({
+          message: "Access denied. Insufficient role",
+        });
+      }
+
+      next();
+    } catch (error) {
+      return res.status(500).json({
+        message: "Role check error",
+      });
+    }
+  };
+};
+
+module.exports = roleMiddleware;

@@ -1,22 +1,61 @@
 const db = require("../config/db");
+const getCurrentDateTime = () => {
+  const now = new Date();
+
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+  const seconds = String(now.getSeconds()).padStart(2, "0");
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
 
 const Host = {
   getAll: async () => {
-    const [rows] = await db.query("SELECT * FROM host");
+    const [rows] = await db.query(`
+      SELECT 
+        h.*,
+        o.name AS osName,
+        o.version AS osVersion
+      FROM host h
+      LEFT JOIN osVersion o ON h.version = o.id
+    `);
     return rows;
   },
 
   getById: async (id) => {
-    const [rows] = await db.query("SELECT * FROM host WHERE id = ?", [id]);
+    const [rows] = await db.query(
+      `
+      SELECT 
+        h.*,
+        o.name AS osName,
+        o.version AS osVersion
+      FROM host h
+      LEFT JOIN osVersion o ON h.version = o.id
+      WHERE h.id = ?
+      `,
+      [id]
+    );
     return rows[0];
   },
 
   create: async (data) => {
-    const columns = Object.keys(data).join(", ");
-    const placeholders = Object.keys(data)
+    const now = getCurrentDateTime();
+
+    const newData = {
+      ...data,
+      category: "server",
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    const columns = Object.keys(newData).join(", ");
+    const placeholders = Object.keys(newData)
       .map(() => "?")
       .join(", ");
-    const values = Object.values(data);
+    const values = Object.values(newData);
 
     const [result] = await db.query(
       `INSERT INTO host (${columns}) VALUES (${placeholders})`,

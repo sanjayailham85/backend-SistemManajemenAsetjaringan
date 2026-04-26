@@ -42,6 +42,7 @@ const getPhysicalById = async (req, res) => {
       status: physical.status,
       detail: physical.detail,
       image: physical.image || null,
+      category: physical.category,
       createdAt: physical.createdAt,
       updatedAt: physical.updatedAt,
       rack: rack
@@ -75,6 +76,7 @@ const createPhysical = async (req, res) => {
       cpu,
       ram,
       storage,
+      category,
       detail,
     } = req.body;
 
@@ -104,6 +106,7 @@ const createPhysical = async (req, res) => {
       storage: storage || null,
       detail: detail || null,
       image: image,
+      category: category,
     });
 
     res.status(201).json({ message: "Physical server created", id });
@@ -136,6 +139,7 @@ const updatePhysical = async (req, res) => {
       ram,
       storage,
       detail,
+      category,
     } = req.body;
 
     const image = req.file ? req.file.filename : undefined;
@@ -160,6 +164,7 @@ const updatePhysical = async (req, res) => {
       ram,
       storage,
       detail,
+      category,
       ...(image && { image }),
     });
 

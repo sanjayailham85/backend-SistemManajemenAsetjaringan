@@ -31,6 +31,7 @@ const Physical = {
 
     const newData = {
       ...data,
+      category: "server",
       createdAt: now,
       updatedAt: now,
     };
