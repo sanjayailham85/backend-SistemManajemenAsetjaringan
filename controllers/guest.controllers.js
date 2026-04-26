@@ -2,6 +2,7 @@ const Guest = require("../models/guest.model");
 const Host = require("../models/host.model");
 const Physical = require("../models/physical.model");
 const Rack = require("../models/rack.model");
+const activityLogHelper = require("../helpers/activityLog.helper");
 const { v4: uuidv4 } = require("uuid");
 
 const getAllGuest = async (req, res) => {
@@ -127,7 +128,8 @@ const createGuest = async (req, res) => {
         .json({ message: "Name, IP, and Host ID are required" });
 
     const id = uuidv4();
-    await Guest.create({
+
+    const newData = {
       id,
       name,
       ip,
@@ -143,6 +145,16 @@ const createGuest = async (req, res) => {
       osVersion,
       status,
       detail,
+    };
+
+    await Guest.create(newData);
+    await activityLogHelper({
+      userId: req.user?.id ?? req.user?.userId ?? null,
+      module: "guest",
+      action: "create",
+      targetId: id,
+      description: `Created Guest ${name}`,
+      newData,
     });
 
     res.status(201).json({ message: "Guest server created", id });
@@ -171,8 +183,14 @@ const updateGuest = async (req, res) => {
       status,
       detail,
     } = req.body;
+    if (!id) return res.status(400).json({ message: "Guest ID is required" });
 
-    const affectedRows = await Guest.update(id, {
+    const oldData = await Guest.getById(id);
+
+    if (!oldData) {
+      return res.status(404).json({ message: "Guest not found" });
+    }
+    const newData = {
       name,
       ip,
       hostId,
@@ -187,10 +205,22 @@ const updateGuest = async (req, res) => {
       osVersion,
       status,
       detail,
-    });
+    };
+
+    const affectedRows = await Guest.update(id, newData);
 
     if (affectedRows === 0)
       return res.status(404).json({ message: "Guest server not found" });
+
+    await activityLogHelper({
+      userId: req.user?.id,
+      module: "guest",
+      action: "update",
+      targetId: id,
+      description: `Updated Guest ${name || oldData.name}`,
+      oldData,
+      newData,
+    });
 
     res.status(200).json({ message: "Guest server updated" });
   } catch (error) {
@@ -202,10 +232,25 @@ const updateGuest = async (req, res) => {
 const deleteGuest = async (req, res) => {
   try {
     const { id } = req.params;
+
+    const oldData = await Guest.getById(id);
+
+    if (!oldData) {
+      return res.status(404).json({ message: "Guest not found" });
+    }
+
     const affectedRows = await Guest.delete(id);
 
     if (affectedRows === 0)
       return res.status(404).json({ message: "Guest server not found" });
+    await activityLogHelper({
+      userId: req.user?.id ?? req.user?.userId ?? null,
+      module: "guest",
+      action: "delete",
+      targetId: id,
+      description: `Deleted Guest ${oldData.name}`,
+      oldData,
+    });
 
     res.status(200).json({ message: "Guest server deleted" });
   } catch (error) {

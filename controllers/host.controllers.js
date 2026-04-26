@@ -1,6 +1,7 @@
 const Host = require("../models/host.model");
 const Physical = require("../models/physical.model");
 const Rack = require("../models/rack.model");
+const activityLogHelper = require("../helpers/activityLog.helper");
 const { v4: uuidv4 } = require("uuid");
 
 const getAllHost = async (req, res) => {
@@ -99,7 +100,7 @@ const createHost = async (req, res) => {
         .json({ message: "Name, IP, and Physical ID are required" });
 
     const id = uuidv4();
-    await Host.create({
+    const newData = {
       id,
       name,
       ip,
@@ -110,6 +111,16 @@ const createHost = async (req, res) => {
       serverDevice,
       status,
       detail,
+    };
+
+    await Host.create(newData);
+    await activityLogHelper({
+      userId: req.user?.id ?? req.user?.userId ?? null,
+      module: "host",
+      action: "create",
+      targetId: id,
+      description: `Created Host ${name}`,
+      newData,
     });
 
     res.status(201).json({ message: "Host server created", id });
@@ -134,7 +145,13 @@ const updateHost = async (req, res) => {
       detail,
     } = req.body;
 
-    const affectedRows = await Host.update(id, {
+    const oldData = await Host.getById(id);
+
+    if (!oldData) {
+      return res.status(404).json({ message: "Host not found" });
+    }
+
+    const newData = {
       name,
       ip,
       physicalId,
@@ -144,10 +161,22 @@ const updateHost = async (req, res) => {
       serverDevice,
       status,
       detail,
-    });
+    };
+
+    const affectedRows = await Host.update(id, newData);
 
     if (affectedRows === 0)
       return res.status(404).json({ message: "Host server not found" });
+
+    await activityLogHelper({
+      userId: req.user?.id,
+      module: "host",
+      action: "update",
+      targetId: id,
+      description: `Updated Host ${name || oldData.name}`,
+      oldData,
+      newData,
+    });
 
     res.status(200).json({ message: "Host server updated" });
   } catch (error) {
@@ -159,10 +188,25 @@ const updateHost = async (req, res) => {
 const deleteHost = async (req, res) => {
   try {
     const { id } = req.params;
+    const oldData = await Host.getById(id);
+
+    if (!oldData) {
+      return res.status(404).json({ message: "Host not found" });
+    }
+
     const affectedRows = await Host.delete(id);
 
     if (affectedRows === 0)
       return res.status(404).json({ message: "Host server not found" });
+
+    await activityLogHelper({
+      userId: req.user?.id ?? req.user?.userId ?? null,
+      module: "host",
+      action: "delete",
+      targetId: id,
+      description: `Deleted Host ${oldData.name}`,
+      oldData,
+    });
 
     res.status(200).json({ message: "Host server deleted" });
   } catch (error) {

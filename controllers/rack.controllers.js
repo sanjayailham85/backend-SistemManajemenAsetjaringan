@@ -1,4 +1,5 @@
 const Rack = require("../models/rack.model");
+const activityLogHelper = require("../helpers/activityLog.helper");
 const { v4: uuidv4 } = require("uuid");
 
 const getAllRacks = async (req, res) => {
@@ -32,7 +33,20 @@ const createRack = async (req, res) => {
         .json({ message: "Name and location are required" });
 
     const id = uuidv4();
-    await Rack.create({ id, name, location });
+    const newData = {
+      id,
+      name,
+      location,
+    };
+    await Rack.create(newData);
+    await activityLogHelper({
+      userId: req.user?.id ?? req.user?.userId ?? null,
+      module: "rack",
+      action: "create",
+      targetId: id,
+      description: `Created Rack ${name}`,
+      newData,
+    });
     res.status(201).json({ message: "Rack created", id });
   } catch (error) {
     console.error("Error creating rack:", error);
@@ -47,9 +61,27 @@ const updateRack = async (req, res) => {
 
     if (!id) return res.status(400).json({ message: "Rack ID is required" });
 
-    const affectedRows = await Rack.update(id, { name, location });
+    const oldData = await Rack.getById(id);
+    if (!oldData) {
+      return res.status(404).json({ message: "Rack not found" });
+    }
+    const newData = {
+      name,
+      location,
+    };
+
+    const affectedRows = await Rack.update(id, newData);
     if (affectedRows === 0)
       return res.status(404).json({ message: "Rack not found" });
+    await activityLogHelper({
+      userId: req.user?.id,
+      module: "rack",
+      action: "update",
+      targetId: id,
+      description: `Updated Rack ${name || oldData.name}`,
+      oldData,
+      newData,
+    });
 
     res.status(200).json({ message: "Rack updated" });
   } catch (error) {
@@ -61,12 +93,24 @@ const updateRack = async (req, res) => {
 const deleteRack = async (req, res) => {
   try {
     const { id } = req.params;
+    const oldData = await Rack.getById(id);
 
-    if (!id) return res.status(400).json({ message: "Rack ID is required" });
+    if (!oldData) {
+      return res.status(404).json({ message: "Rack not found" });
+    }
 
     const affectedRows = await Rack.delete(id);
+
     if (affectedRows === 0)
       return res.status(404).json({ message: "Rack not found" });
+    await activityLogHelper({
+      userId: req.user?.id ?? req.user?.userId ?? null,
+      module: "rack",
+      action: "delete",
+      targetId: id,
+      description: `Deleted Rack ${oldData.name}`,
+      oldData,
+    });
 
     res.status(200).json({ message: "Rack deleted" });
   } catch (error) {

@@ -1,5 +1,6 @@
 const Physical = require("../models/physical.model");
 const Rack = require("../models/rack.model");
+const activityLogHelper = require("../helpers/activityLog.helper");
 const { v4: uuidv4 } = require("uuid");
 const { deleteImage } = require("../helpers/file.helper");
 
@@ -89,7 +90,7 @@ const createPhysical = async (req, res) => {
 
     const id = uuidv4();
 
-    await Physical.create({
+    const newData = {
       id,
       name,
       ip,
@@ -107,6 +108,16 @@ const createPhysical = async (req, res) => {
       detail: detail || null,
       image: image,
       category: category,
+    };
+
+    await Physical.create(newData);
+    await activityLogHelper({
+      userId: req.user?.id ?? req.user?.userId ?? null,
+      module: "physical",
+      action: "create",
+      targetId: id,
+      description: `Created Physical Server ${name}`,
+      newData,
     });
 
     res.status(201).json({ message: "Physical server created", id });
@@ -119,11 +130,6 @@ const createPhysical = async (req, res) => {
 const updatePhysical = async (req, res) => {
   try {
     const { id } = req.params;
-
-    const existingPhysical = await Physical.getById(id);
-    if (!existingPhysical)
-      return res.status(404).json({ message: "Physical server not found" });
-
     const {
       name,
       ip,
@@ -141,15 +147,16 @@ const updatePhysical = async (req, res) => {
       detail,
       category,
     } = req.body;
+    if (!id)
+      return res.status(400).json({ message: "Physical ID is required" });
 
-    const image = req.file ? req.file.filename : undefined;
+    const oldData = await Physical.getById(id);
 
-    // Hapus image lama jika ada file baru
-    if (image && existingPhysical.image) {
-      deleteImage(existingPhysical.image);
+    if (!oldData) {
+      return res.status(404).json({ message: "Physical not found" });
     }
 
-    const affectedRows = await Physical.update(id, {
+    const newData = {
       name,
       ip,
       rackId,
@@ -165,7 +172,26 @@ const updatePhysical = async (req, res) => {
       storage,
       detail,
       category,
-      ...(image && { image }),
+    };
+
+    const image = req.file ? req.file.filename : undefined;
+
+    // Hapus image lama jika ada file baru
+    if (image && oldData.image) {
+      deleteImage(oldData.image);
+    }
+    const affectedRows = await Physical.update(id, newData);
+    if (affectedRows === 0)
+      return res.status(404).json({ message: "Guest server not found" });
+
+    await activityLogHelper({
+      userId: req.user?.id,
+      module: "physical",
+      action: "update",
+      targetId: id,
+      description: `Updated Physical ${name || oldData.name}`,
+      oldData,
+      newData,
     });
 
     res.status(200).json({ message: "Physical server updated" });
@@ -178,17 +204,32 @@ const updatePhysical = async (req, res) => {
 const deletePhysical = async (req, res) => {
   try {
     const { id } = req.params;
+    const oldData = await Physical.getById(id);
 
-    const existingPhysical = await Physical.getById(id);
-    if (!existingPhysical)
+    if (!oldData) {
+      return res.status(404).json({ message: "Physical not found" });
+    }
+    const affectedRows = await Physical.delete(id);
+
+    if (affectedRows === 0)
+      return res.status(404).json({ message: "Physical server not found" });
+
+    if (!oldData)
       return res.status(404).json({ message: "Physical server not found" });
 
     // Hapus image lama jika ada
-    if (existingPhysical.image) {
-      deleteImage(existingPhysical.image);
+    if (oldData.image) {
+      deleteImage(oldData.image);
     }
 
-    const affectedRows = await Physical.delete(id);
+    await activityLogHelper({
+      userId: req.user?.id ?? req.user?.userId ?? null,
+      module: "physical",
+      action: "delete",
+      targetId: id,
+      description: `Deleted Physical Server ${oldData.name}`,
+      oldData,
+    });
 
     res.status(200).json({ message: "Physical server deleted" });
   } catch (error) {

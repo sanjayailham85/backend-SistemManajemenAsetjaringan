@@ -1,4 +1,5 @@
 const Switch = require("../models/switch.model");
+const activityLogHelper = require("../helpers/activityLog.helper");
 const { v4: uuidv4 } = require("uuid");
 
 const getAllSwitch = async (req, res) => {
@@ -27,14 +28,15 @@ const getSwitchById = async (req, res) => {
 
 const createSwitch = async (req, res) => {
   try {
-    const { name, ip, type, location, locationDetail, status, code } = req.body;
+    const { name, ip, type, location, locationDetail, status, detail, code } =
+      req.body;
 
     if (!name || !ip)
       return res.status(400).json({ message: "Name and IP are required" });
 
     const id = uuidv4();
 
-    await Switch.create({
+    const newData = {
       id,
       name,
       ip,
@@ -42,7 +44,18 @@ const createSwitch = async (req, res) => {
       location,
       locationDetail,
       status,
+      detail,
       code,
+    };
+
+    await Switch.create(newData);
+    await activityLogHelper({
+      userId: req.user?.id ?? req.user?.userId ?? null,
+      module: "switch",
+      action: "create",
+      targetId: id,
+      description: `Created Switch ${name}`,
+      newData,
     });
 
     res.status(201).json({ message: "Switch created", id });
@@ -56,22 +69,41 @@ const updateSwitch = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { name, ip, type, location, locationDetail, status, code } = req.body;
+    const { name, ip, type, location, locationDetail, status, detail, code } =
+      req.body;
 
     if (!id) return res.status(400).json({ message: "Switch ID is required" });
+    const oldData = await Switch.getById(id);
 
-    const affectedRows = await Switch.update(id, {
+    if (!oldData) {
+      return res.status(404).json({ message: "Switch not found" });
+    }
+
+    const newData = {
       name,
       ip,
       type,
       location,
       locationDetail,
       status,
+      detail,
       code,
-    });
+    };
+
+    const affectedRows = await Switch.update(id, newData);
 
     if (affectedRows === 0)
       return res.status(404).json({ message: "Switch not found" });
+
+    await activityLogHelper({
+      userId: req.user?.id,
+      module: "switch",
+      action: "update",
+      targetId: id,
+      description: `Updated Switch ${name || oldData.name}`,
+      oldData,
+      newData,
+    });
 
     res.status(200).json({ message: "Switch updated" });
   } catch (error) {
@@ -83,13 +115,25 @@ const updateSwitch = async (req, res) => {
 const deleteSwitch = async (req, res) => {
   try {
     const { id } = req.params;
+    const oldData = await Switch.getById(id);
 
-    if (!id) return res.status(400).json({ message: "Switch ID is required" });
+    if (!oldData) {
+      return res.status(404).json({ message: "Switch not found" });
+    }
 
     const affectedRows = await Switch.delete(id);
 
     if (affectedRows === 0)
       return res.status(404).json({ message: "Switch not found" });
+
+    await activityLogHelper({
+      userId: req.user?.id ?? req.user?.userId ?? null,
+      module: "switch",
+      action: "delete",
+      targetId: id,
+      description: `Deleted Switch ${oldData.name}`,
+      oldData,
+    });
 
     res.status(200).json({ message: "Switch deleted" });
   } catch (error) {

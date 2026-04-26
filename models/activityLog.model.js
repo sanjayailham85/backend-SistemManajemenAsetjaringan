@@ -1,9 +1,9 @@
-import db from "../config/db.js";
+const db = require("../config/db");
 
 class ActivityLog {
   static async create({
     userId,
-    category,
+    module,
     action,
     targetId = null,
     description,
@@ -15,7 +15,7 @@ class ActivityLog {
       INSERT INTO activitylogs
       (
         userId,
-        category,
+        module,
         action,
         targetId,
         description,
@@ -26,11 +26,11 @@ class ActivityLog {
       VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
       `,
       [
-        userId,
-        module,
-        action,
-        targetId,
-        description,
+        userId ?? null,
+        module ?? null,
+        action ?? null,
+        targetId ?? null,
+        description ?? null,
         oldData ? JSON.stringify(oldData) : null,
         newData ? JSON.stringify(newData) : null,
       ]
@@ -39,14 +39,16 @@ class ActivityLog {
     return result.insertId;
   }
 
-  static async getRecent(limit = 10) {
+  static async getRecent(limit = 5) {
+    const safeLimit = Number(limit) || 5;
+
     const [rows] = await db.execute(
       `
       SELECT
         al.id,
         al.userId,
         u.name,
-        al.category,
+        al.module,
         al.action,
         al.targetId,
         al.description,
@@ -56,9 +58,8 @@ class ActivityLog {
       FROM activitylogs al
       LEFT JOIN users u ON u.id = al.userId
       ORDER BY al.createdAt DESC
-      LIMIT ?
-      `,
-      [limit]
+      LIMIT ${safeLimit}
+      `
     );
 
     return rows.map((row) => ({
@@ -75,7 +76,7 @@ class ActivityLog {
         al.id,
         al.userId,
         u.name,
-        al.category,
+        al.module,
         al.action,
         al.targetId,
         al.description,
@@ -96,4 +97,4 @@ class ActivityLog {
   }
 }
 
-export default ActivityLog;
+module.exports = ActivityLog;

@@ -29,10 +29,12 @@ const authRoutes = require("./routes/auth.routes");
 const searchRoutes = require("./routes/search.routes");
 const osVersionRoutes = require("./routes/osVersion.routes");
 const deviceMonitoringRoutes = require("./routes/deviceMonitoring.routes");
+const activityLogRoutes = require("./routes/activityLog.routes");
 
 // static & api
 app.use("/api/auth", authRoutes);
 app.use("/api/search", searchRoutes);
+app.use("/api/activitylog", activityLogRoutes);
 
 app.use("/api/rack", rackRoutes);
 app.use("/api/physical", physicalRoutes);

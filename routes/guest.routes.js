@@ -17,20 +17,14 @@ const guestController = require("../controllers/guest.controllers");
 const authMiddleware = require("../middlewares/auth.middleware");
 const roleMiddleware = require("../middlewares/role.middleware");
 
-router.get("/", guestController.getAllGuest);
-// router.get(
-//   "/",
-//   authMiddleware,
-//   roleMiddleware(["superadmin", "admin", "operator", "guest"]),
-//   guestController.getAllGuest
-// );
+router.get("/", authMiddleware, guestController.getAllGuest);
 
-router.get("/:id", guestController.getGuestById);
+router.get("/:id", authMiddleware, guestController.getGuestById);
 
-router.post("/", guestController.createGuest);
+router.post("/", authMiddleware, guestController.createGuest);
 
-router.put("/:id", guestController.updateGuest);
+router.put("/:id", authMiddleware, guestController.updateGuest);
 
-router.delete("/:id", guestController.deleteGuest);
+router.delete("/:id", authMiddleware, guestController.deleteGuest);
 
 module.exports = router;

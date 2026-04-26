@@ -1,4 +1,6 @@
 const CCTV = require("../models/cctv.model");
+const activityLogHelper = require("../helpers/activityLog.helper");
+
 const { v4: uuidv4 } = require("uuid");
 
 const getAllCCTV = async (req, res) => {
@@ -34,7 +36,8 @@ const createCCTV = async (req, res) => {
       return res.status(400).json({ message: "Name and IP are required" });
 
     const id = uuidv4();
-    await CCTV.create({
+
+    const newData = {
       id,
       name,
       ip,
@@ -44,6 +47,16 @@ const createCCTV = async (req, res) => {
       status,
       detail,
       code,
+    };
+
+    await CCTV.create(newData);
+    await activityLogHelper({
+      userId: req.user?.id ?? req.user?.userId ?? null,
+      module: "cctv",
+      action: "create",
+      targetId: id,
+      description: `Created CCTV ${name}`,
+      newData,
     });
 
     res.status(201).json({ message: "CCTV created", id });
@@ -62,20 +75,37 @@ const updateCCTV = async (req, res) => {
 
     if (!id) return res.status(400).json({ message: "CCTV ID is required" });
 
-    const affectedRows = await CCTV.update(id, {
+    const oldData = await CCTV.getById(id);
+
+    if (!oldData) {
+      return res.status(404).json({ message: "Access Point not found" });
+    }
+
+    const newData = {
       name,
       ip,
-
       type,
       location,
       locationDetail,
       status,
       detail,
       code,
-    });
+    };
+
+    const affectedRows = await CCTV.update(id, newData);
 
     if (affectedRows === 0)
       return res.status(404).json({ message: "CCTV not found" });
+
+    await activityLogHelper({
+      userId: req.user?.id,
+      module: "cctv",
+      action: "update",
+      targetId: id,
+      description: `Updated CCTV ${name || oldData.name}`,
+      oldData,
+      newData,
+    });
 
     res.status(200).json({ message: "CCTV updated" });
   } catch (error) {
@@ -90,10 +120,25 @@ const deleteCCTV = async (req, res) => {
 
     if (!id) return res.status(400).json({ message: "CCTV ID is required" });
 
+    const oldData = await CCTV.getById(id);
+
+    if (!oldData) {
+      return res.status(404).json({ message: "Access Point not found" });
+    }
+
     const affectedRows = await CCTV.delete(id);
 
     if (affectedRows === 0)
       return res.status(404).json({ message: "CCTV not found" });
+
+    await activityLogHelper({
+      userId: req.user?.id ?? req.user?.userId ?? null,
+      module: "cctv",
+      action: "delete",
+      targetId: id,
+      description: `Deleted CCTV ${oldData.name}`,
+      oldData,
+    });
 
     res.status(200).json({ message: "CCTV deleted" });
   } catch (error) {

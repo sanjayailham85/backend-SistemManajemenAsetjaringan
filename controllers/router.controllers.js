@@ -1,4 +1,5 @@
 const Router = require("../models/router.model");
+const activityLogHelper = require("../helpers/activityLog.helper");
 const { v4: uuidv4 } = require("uuid");
 
 const getAllRouter = async (req, res) => {
@@ -27,24 +28,15 @@ const getRouterById = async (req, res) => {
 
 const createRouter = async (req, res) => {
   try {
-    const {
-      name,
-      ip,
-
-      type,
-      location,
-      locationDetail,
-      status,
-      detail,
-      code,
-    } = req.body;
+    const { name, ip, type, location, locationDetail, status, detail, code } =
+      req.body;
 
     if (!name || !ip)
       return res.status(400).json({ message: "Name and IP are required" });
 
     const id = uuidv4();
 
-    await Router.create({
+    const newData = {
       id,
       name,
       ip,
@@ -54,8 +46,16 @@ const createRouter = async (req, res) => {
       status,
       detail,
       code,
+    };
+    await Router.create(newData);
+    await activityLogHelper({
+      userId: req.user?.id ?? req.user?.userId ?? null,
+      module: "router",
+      action: "create",
+      targetId: id,
+      description: `Created Router ${name}`,
+      newData,
     });
-
     res.status(201).json({ message: "Router created", id });
   } catch (error) {
     console.error("Error creating Router:", error);
@@ -80,21 +80,36 @@ const updateRouter = async (req, res) => {
     } = req.body;
 
     if (!id) return res.status(400).json({ message: "Router ID is required" });
+    const oldData = await Router.getById(id);
 
-    const affectedRows = await Router.update(id, {
+    if (!oldData) {
+      return res.status(404).json({ message: "Router not found" });
+    }
+
+    const newData = {
       name,
       ip,
-
       type,
       location,
       locationDetail,
       status,
       detail,
       code,
-    });
+    };
+    const affectedRows = await Router.update(id, newData);
 
     if (affectedRows === 0)
       return res.status(404).json({ message: "Router not found" });
+
+    await activityLogHelper({
+      userId: req.user?.id,
+      module: "router",
+      action: "update",
+      targetId: id,
+      description: `Updated Router ${name || oldData.name}`,
+      oldData,
+      newData,
+    });
 
     res.status(200).json({ message: "Router updated" });
   } catch (error) {
@@ -107,12 +122,24 @@ const deleteRouter = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!id) return res.status(400).json({ message: "Router ID is required" });
+    const oldData = await Router.getById(id);
+
+    if (!oldData) {
+      return res.status(404).json({ message: "Guest not found" });
+    }
 
     const affectedRows = await Router.delete(id);
 
     if (affectedRows === 0)
       return res.status(404).json({ message: "Router not found" });
+    await activityLogHelper({
+      userId: req.user?.id ?? req.user?.userId ?? null,
+      module: "router",
+      action: "delete",
+      targetId: id,
+      description: `Deleted Router ${oldData.name}`,
+      oldData,
+    });
 
     res.status(200).json({ message: "Router deleted" });
   } catch (error) {
