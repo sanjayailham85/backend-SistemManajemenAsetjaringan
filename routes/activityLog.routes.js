@@ -6,5 +6,6 @@ const activityLog = require("../controllers/activityLog.controllers");
 
 router.get("/recent", authMiddleware, activityLog.getRecent);
 router.get("/", authMiddleware, activityLog.getAll);
+router.delete("/:id", authMiddleware, activityLog.deleteActivityLogs);
 
 module.exports = router;

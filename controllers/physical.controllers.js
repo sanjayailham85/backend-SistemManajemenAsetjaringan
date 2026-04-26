@@ -6,8 +6,28 @@ const { deleteImage } = require("../helpers/file.helper");
 
 const getAllPhysical = async (req, res) => {
   try {
-    const servers = await Physical.getAll();
-    res.status(200).json(servers);
+    let { page, limit } = req.query;
+
+    page = Number(page);
+    limit = Number(limit);
+
+    page = Number.isInteger(page) && page > 0 ? page : 1;
+    limit = Number.isInteger(limit) && limit > 0 ? limit : 10;
+
+    const offset = (page - 1) * limit;
+
+    const logs = await Physical.getAll(limit, offset);
+    const total = await Physical.getCount();
+
+    const totalPages = Math.ceil(total / limit);
+
+    res.status(200).json({
+      data: logs,
+      page,
+      limit,
+      total,
+      totalPages,
+    });
   } catch (error) {
     console.error("Error getting physical servers:", error);
     res.status(500).json({ message: "Internal server error" });

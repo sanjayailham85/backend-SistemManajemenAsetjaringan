@@ -13,16 +13,28 @@ const getCurrentDateTime = () => {
 };
 
 const Host = {
-  getAll: async () => {
-    const [rows] = await db.query(`
+  getAll: async (limit, offset) => {
+    const safeLimit = Math.max(1, parseInt(limit, 10) || 10);
+    const safeOffset = Math.max(0, parseInt(offset, 10) || 0);
+    const [rows] = await db.query(
+      `
       SELECT 
         h.*,
         o.name AS osName,
         o.version AS osVersion
       FROM host h
       LEFT JOIN osVersion o ON h.version = o.id
-    `);
+      LIMIT ? OFFSET ?
+    `,
+      [safeLimit, safeOffset]
+    );
     return rows;
+  },
+
+  getCount: async () => {
+    const [rows] = await db.query(`SELECT COUNT(*) as total FROM host`);
+
+    return rows[0].total;
   },
 
   getById: async (id) => {

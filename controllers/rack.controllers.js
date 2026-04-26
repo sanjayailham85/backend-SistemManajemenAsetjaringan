@@ -4,8 +4,28 @@ const { v4: uuidv4 } = require("uuid");
 
 const getAllRacks = async (req, res) => {
   try {
-    const rack = await Rack.getAll();
-    res.status(200).json(rack);
+    let { page, limit } = req.query;
+
+    page = Number(page);
+    limit = Number(limit);
+
+    page = Number.isInteger(page) && page > 0 ? page : 1;
+    limit = Number.isInteger(limit) && limit > 0 ? limit : 10;
+
+    const offset = (page - 1) * limit;
+
+    const logs = await Rack.getAll(limit, offset);
+    const total = await Rack.getCount();
+
+    const totalPages = Math.ceil(total / limit);
+
+    res.status(200).json({
+      data: logs,
+      page,
+      limit,
+      total,
+      totalPages,
+    });
   } catch (error) {
     console.error("Error getting rack:", error);
     res.status(500).json({ message: "Internal server error" });

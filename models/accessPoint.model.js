@@ -13,11 +13,24 @@ const getCurrentDateTime = () => {
 };
 
 const AccessPoint = {
-  getAll: async () => {
+  getAll: async (limit, offset) => {
+    const safeLimit = Math.max(1, parseInt(limit, 10) || 10);
+    const safeOffset = Math.max(0, parseInt(offset, 10) || 0);
     const [rows] = await db.query(
-      "SELECT * FROM accessPoint ORDER BY name ASC"
+      `
+  SELECT * FROM accessPoint
+  ORDER BY name ASC
+  LIMIT ? OFFSET ?
+  `,
+      [safeLimit, safeOffset]
     );
     return rows;
+  },
+
+  getCount: async () => {
+    const [rows] = await db.query(`SELECT COUNT(*) as total FROM accessPoint`);
+
+    return rows[0].total;
   },
 
   getById: async (id) => {
