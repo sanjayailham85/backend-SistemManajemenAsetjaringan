@@ -1,5 +1,6 @@
 const Physical = require("../models/physical.model");
 const Rack = require("../models/rack.model");
+const Host = require("../models/host.model");
 const activityLogHelper = require("../helpers/activityLog.helper");
 const { v4: uuidv4 } = require("uuid");
 const { deleteImage } = require("../helpers/file.helper");
@@ -229,6 +230,16 @@ const deletePhysical = async (req, res) => {
     if (!oldData) {
       return res.status(404).json({ message: "Physical not found" });
     }
+
+    const hosts = await Host.getByPhysicalId(id);
+
+    if (hosts && hosts.length > 0) {
+      return res.status(400).json({
+        code: "PHYSICAL_NOT_EMPTY",
+        message: "Physical tidak dapat dihapus karena masih berisi host.",
+      });
+    }
+
     const affectedRows = await Physical.delete(id);
 
     if (affectedRows === 0)

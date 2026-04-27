@@ -1,3 +1,4 @@
+const Guest = require("../models/guest.model");
 const Host = require("../models/host.model");
 const Physical = require("../models/physical.model");
 const Rack = require("../models/rack.model");
@@ -212,6 +213,15 @@ const deleteHost = async (req, res) => {
 
     if (!oldData) {
       return res.status(404).json({ message: "Host not found" });
+    }
+
+    const guests = await Guest.getByHostId(id);
+
+    if (guests && guests.length > 0) {
+      return res.status(400).json({
+        code: "HOST_NOT_EMPTY",
+        message: "Host tidak dapat dihapus karena masih berisi guest.",
+      });
     }
 
     const affectedRows = await Host.delete(id);

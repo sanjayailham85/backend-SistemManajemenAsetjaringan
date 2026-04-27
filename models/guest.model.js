@@ -37,6 +37,12 @@ const Guest = {
     const [rows] = await db.query("SELECT * FROM guest WHERE id = ?", [id]);
     return rows[0];
   },
+  getByHostId: async (hostId) => {
+    const [rows] = await db.query("SELECT id FROM guest WHERE hostId = ?", [
+      hostId,
+    ]);
+    return rows;
+  },
 
   create: async (data) => {
     const now = getCurrentDateTime();

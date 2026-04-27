@@ -53,6 +53,13 @@ const Host = {
     return rows[0];
   },
 
+  getByPhysicalId: async (physicalId) => {
+    const [rows] = await db.query("SELECT id FROM host WHERE physicalId = ?", [
+      physicalId,
+    ]);
+    return rows;
+  },
+
   create: async (data) => {
     const now = getCurrentDateTime();
 

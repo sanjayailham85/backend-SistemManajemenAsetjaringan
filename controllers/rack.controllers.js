@@ -1,4 +1,5 @@
 const Rack = require("../models/rack.model");
+const Physical = require("../models/physical.model");
 const activityLogHelper = require("../helpers/activityLog.helper");
 const { v4: uuidv4 } = require("uuid");
 
@@ -67,7 +68,7 @@ const createRack = async (req, res) => {
       description: `Created Rack ${name}`,
       newData,
     });
-    res.status(201).json({ message: "Rack created", id });
+    res.status(200).json({ message: "Rack created", id });
   } catch (error) {
     console.error("Error creating rack:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -117,6 +118,16 @@ const deleteRack = async (req, res) => {
 
     if (!oldData) {
       return res.status(404).json({ message: "Rack not found" });
+    }
+
+    const physicals = await Physical.getByRackId(id);
+
+    if (physicals && physicals.length > 0) {
+      return res.status(400).json({
+        code: "RACK_NOT_EMPTY",
+        message:
+          "Rack tidak dapat dihapus karena masih berisi physical server.",
+      });
     }
 
     const affectedRows = await Rack.delete(id);

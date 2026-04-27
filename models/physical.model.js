@@ -43,6 +43,14 @@ const Physical = {
     return rows[0];
   },
 
+  getByRackId: async (rackId) => {
+    const [rows] = await db.query(
+      "SELECT id FROM physicalServer WHERE rackId = ?",
+      [rackId]
+    );
+    return rows;
+  },
+
   create: async (data) => {
     const now = getCurrentDateTime();
 
