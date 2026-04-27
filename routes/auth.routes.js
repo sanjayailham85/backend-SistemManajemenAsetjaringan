@@ -13,12 +13,8 @@ const {
   deleteUser,
 } = require("../controllers/auth.controllers");
 
-// =========================
-// AUTH
-// =========================
 router.post("/login", login);
 
-// REGISTER (superadmin only)
 router.post(
   "/register",
   authMiddleware,
@@ -26,9 +22,6 @@ router.post(
   register
 );
 
-// =========================
-// USER MANAGEMENT (superadmin only)
-// =========================
 router.get(
   "/users",
   authMiddleware,

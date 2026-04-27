@@ -3,7 +3,6 @@ const jwtConfig = require("../config/jwt");
 
 const authMiddleware = (req, res, next) => {
   try {
-    // ambil token dari header
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
@@ -12,7 +11,6 @@ const authMiddleware = (req, res, next) => {
       });
     }
 
-    // format: Bearer token
     const token = authHeader.split(" ")[1];
 
     if (!token) {
@@ -21,10 +19,8 @@ const authMiddleware = (req, res, next) => {
       });
     }
 
-    // verify token
     const decoded = jwt.verify(token, jwtConfig.secret);
 
-    // simpan user ke request
     req.user = decoded;
 
     next();

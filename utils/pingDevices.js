@@ -18,4 +18,4 @@ const pingDevice = async (ip) => {
   }
 };
 
-module.exports = pingDevice;
+module.exports = { pingDevice };

@@ -1,7 +1,7 @@
 const {
   getAllDevicesMonitoringService,
 } = require("../services/deviceMonitoring.service");
-const pingDevice = require("../utils/pingDevices");
+const { pingDevice } = require("../utils/pingDevices");
 const { getIO } = require("../utils/sockets");
 
 let cachedDevices = [];
@@ -14,10 +14,17 @@ const CONCURRENT_LIMIT = 10; // maksimal 10 ping bersamaan
 // refresh daftar device dari database
 const refreshDevices = async () => {
   try {
-    cachedDevices = await getAllDevicesMonitoringService();
+    const devices = await getAllDevicesMonitoringService();
+
+    cachedDevices = devices.map((device) => ({
+      ...device,
+      monitoringStatus:
+        previousStatuses[device.id] || device.monitoringStatus || "offline",
+    }));
+
     console.log("Devices refreshed:", cachedDevices.length);
   } catch (err) {
-    // console.error("Refresh devices error:", err.message);
+    console.error("Refresh devices error:", err.message);
   }
 };
 
@@ -41,21 +48,27 @@ const runMonitoring = async () => {
 
     const batches = chunkArray(cachedDevices, CONCURRENT_LIMIT);
     const changedDevices = [];
+    const updatedDevices = [];
 
     for (const batch of batches) {
       const batchResults = await Promise.all(
         batch.map(async (device) => {
-          const ping = await pingDevice(device.ip);
-          const newStatus = ping.alive ? "online" : "offline";
+          const result = await pingDevice(device.ip);
+          let newStatus = "offline";
+
+          if (result.alive) {
+            if (result.time && result.time > 100) {
+              newStatus = "warning";
+            } else {
+              newStatus = "online";
+            }
+          }
 
           const updatedDevice = {
-            id: device.id,
-            name: device.name,
-            ip: device.ip,
-            category: device.category,
-            status: device.status,
+            ...device,
+            status: newStatus,
             monitoringStatus: newStatus,
-            ping: ping.time,
+            ping: result.time,
             lastSeen: new Date(),
           };
 
@@ -66,14 +79,19 @@ const runMonitoring = async () => {
           }
 
           previousStatuses[device.id] = newStatus;
+          updatedDevices.push(updatedDevice);
 
           return updatedDevice;
         })
       );
     }
 
-    // kirim hanya jika ada perubahan
+    // update cache seluruh device
+    cachedDevices = updatedDevices;
+
+    // kirim hanya yang berubah
     if (changedDevices.length > 0) {
+      console.log("Device updated:", changedDevices.length);
       io.emit("monitoring:update", changedDevices);
     }
   } catch (err) {
@@ -81,11 +99,23 @@ const runMonitoring = async () => {
   }
 };
 
+// kirim data awal saat client connect
+const setupMonitoringSocket = () => {
+  const io = getIO();
+
+  io.on("connection", (socket) => {
+    socket.emit("monitoring:init", cachedDevices);
+  });
+};
+
 // interval
 setInterval(refreshDevices, REFRESH_INTERVAL);
 setInterval(runMonitoring, MONITOR_INTERVAL);
 
-// pertama kali load
-refreshDevices();
+// pertama kali
+refreshDevices().then(() => {
+  runMonitoring();
+  setupMonitoringSocket();
+});
 
 module.exports = runMonitoring;

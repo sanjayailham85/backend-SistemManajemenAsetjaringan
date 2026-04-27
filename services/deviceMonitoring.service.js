@@ -6,17 +6,15 @@ const Router = require("../models/router.model");
 const CCTV = require("../models/cctv.model");
 const AccessPoint = require("../models/accessPoint.model");
 
-const buildMonitoringData = async (device) => {
-  const ping = await pingDevice(device.ip);
-
+const buildMonitoringData = (device) => {
   return {
     id: device.id,
     name: device.name,
     ip: device.ip,
     category: device.category,
-    status: device.status,
-    monitoringStatus: ping.alive ? "online" : "offline",
-    ping: ping.time,
+    status: device.status || "offline",
+    monitoringStatus: device.monitoringStatus || "offline",
+    ping: null,
     lastSeen: device.updatedAt || null,
   };
 };
@@ -43,7 +41,7 @@ const getAllDevicesMonitoringService = async () => {
     ...accessPoint,
   ];
 
-  return Promise.all(allDevices.map(buildMonitoringData));
+  return allDevices.map(buildMonitoringData);
 };
 
 module.exports = { getAllDevicesMonitoringService };

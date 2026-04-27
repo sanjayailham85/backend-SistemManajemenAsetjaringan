@@ -9,7 +9,6 @@ const roleMiddleware = (allowedRoles) => {
         });
       }
 
-      // cek apakah role user termasuk yang diizinkan
       if (!allowedRoles.includes(user.role)) {
         return res.status(403).json({
           message: "Access denied. Insufficient role",

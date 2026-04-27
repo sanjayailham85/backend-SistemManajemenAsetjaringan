@@ -30,8 +30,9 @@ const searchRoutes = require("./routes/search.routes");
 const osVersionRoutes = require("./routes/osVersion.routes");
 const deviceMonitoringRoutes = require("./routes/deviceMonitoring.routes");
 const activityLogRoutes = require("./routes/activityLog.routes");
+const exportRoutes = require("./routes/export.routes");
+const importRoutes = require("./routes/import.routes");
 
-// static & api
 app.use("/api/auth", authRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/activitylog", activityLogRoutes);
@@ -47,21 +48,20 @@ app.use("/api/router", routerRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/osVersion", osVersionRoutes);
 app.use("/api/monitoring", deviceMonitoringRoutes);
+app.use("/api/export", exportRoutes);
+app.use("/api/import", importRoutes);
 
 // root
 app.get("/", (req, res) => {
   res.json({ message: "Backend running ✅" });
 });
 
-// monitoring worker
 const runMonitoring = require("./workers/monitoring.worker");
 
-// start server
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 
-  // worker jalan setelah server benar-benar siap
   setInterval(runMonitoring, 10000);
 });

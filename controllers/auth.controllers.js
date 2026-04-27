@@ -168,7 +168,6 @@ const updateUser = async (req, res) => {
 
     let hashedPassword = user[0].password;
 
-    // kalau password diisi, update password
     if (password) {
       hashedPassword = await bcrypt.hash(password, 10);
     }

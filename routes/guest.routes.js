@@ -1,16 +1,3 @@
-// const express = require("express");
-// const router = express.Router();
-// const controller = require("../controllers/guest.controllers");
-
-// router.get("/", controller.getAllGuest);
-// router.get("/:id", controller.getGuestById);
-// router.post("/", controller.createGuest);
-// router.put("/:id", controller.updateGuest);
-// router.delete("/:id", controller.deleteGuest);
-
-// module.exports = router;
-
-// routes/guestRoutes.js
 const express = require("express");
 const router = express.Router();
 const guestController = require("../controllers/guest.controllers");
