@@ -63,7 +63,7 @@ const login = async (req, res) => {
 ========================= */
 const register = async (req, res) => {
   try {
-    const { username, email, password, name, role } = req.body;
+    const { username, password, name, role } = req.body;
 
     if (!username || !password || !name || !role) {
       return res.status(400).json({
@@ -95,7 +95,6 @@ const register = async (req, res) => {
     // hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // insert user (PAKAI UUID dari JS, bukan MySQL)
     await db.execute(
       `INSERT INTO users 
       (id, username, password, name, role, createdAt, updatedAt)

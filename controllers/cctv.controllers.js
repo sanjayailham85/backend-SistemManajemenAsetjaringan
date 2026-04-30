@@ -5,7 +5,7 @@ const { v4: uuidv4 } = require("uuid");
 
 const getAllCCTV = async (req, res) => {
   try {
-    let { page, limit } = req.query;
+    let { page, limit, controllerId } = req.query;
 
     page = Number(page);
     limit = Number(limit);
@@ -15,13 +15,13 @@ const getAllCCTV = async (req, res) => {
 
     const offset = (page - 1) * limit;
 
-    const logs = await CCTV.getAll(limit, offset);
-    const total = await CCTV.getCount();
+    const data = await CCTV.getAll(limit, offset, controllerId);
+    const total = await CCTV.getCount(controllerId);
 
     const totalPages = Math.ceil(total / limit);
 
     res.status(200).json({
-      data: logs,
+      data,
       page,
       limit,
       total,
@@ -49,8 +49,18 @@ const getCCTVById = async (req, res) => {
 
 const createCCTV = async (req, res) => {
   try {
-    const { name, ip, type, location, locationDetail, status, detail, code } =
-      req.body;
+    const {
+      name,
+      ip,
+      type,
+      location,
+      locationDetail,
+      controllerId,
+      status,
+      detail,
+      code,
+      merk,
+    } = req.body;
 
     if (!name || !ip)
       return res.status(400).json({ message: "Name and IP are required" });
@@ -64,9 +74,11 @@ const createCCTV = async (req, res) => {
       type,
       location,
       locationDetail,
+      controllerId,
       status,
       detail,
       code,
+      merk,
     };
 
     await CCTV.create(newData);
@@ -90,8 +102,18 @@ const updateCCTV = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { name, ip, type, location, locationDetail, status, detail, code } =
-      req.body;
+    const {
+      name,
+      ip,
+      type,
+      location,
+      locationDetail,
+      controllerId,
+      status,
+      detail,
+      code,
+      merk,
+    } = req.body;
 
     if (!id) return res.status(400).json({ message: "CCTV ID is required" });
 
@@ -107,9 +129,11 @@ const updateCCTV = async (req, res) => {
       type,
       location,
       locationDetail,
+      controllerId,
       status,
       detail,
       code,
+      merk,
     };
 
     const affectedRows = await CCTV.update(id, newData);

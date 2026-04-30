@@ -28,10 +28,17 @@ const dashboardRoutes = require("./routes/dashboard.routes");
 const authRoutes = require("./routes/auth.routes");
 const searchRoutes = require("./routes/search.routes");
 const osVersionRoutes = require("./routes/osVersion.routes");
+const locationRoutes = require("./routes/location.routes");
+const AccessPointMerkRoutes = require("./routes/accessPointMerk.routes");
+const CCTVMerkRoutes = require("./routes/cctvMerk.routes");
+const AccessPointControllerRoutes = require("./routes/accessPointController.routes");
+const CCTVControllerRoutes = require("./routes/cctvController.routes");
+const merkRoutes = require("./routes/merk.routes");
 const deviceMonitoringRoutes = require("./routes/deviceMonitoring.routes");
 const activityLogRoutes = require("./routes/activityLog.routes");
 const exportRoutes = require("./routes/export.routes");
 const importRoutes = require("./routes/import.routes");
+const ipListRoutes = require("./routes/ipList.routes");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/search", searchRoutes);
@@ -47,9 +54,16 @@ app.use("/api/cctv", cctvRoutes);
 app.use("/api/router", routerRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/osVersion", osVersionRoutes);
+app.use("/api/location", locationRoutes);
+app.use("/api/accessPointMerk", AccessPointMerkRoutes);
+app.use("/api/cctvMerk", CCTVMerkRoutes);
+app.use("/api/accessPointController", AccessPointControllerRoutes);
+app.use("/api/cctvController", CCTVControllerRoutes);
+app.use("/api/merk", merkRoutes);
 app.use("/api/monitoring", deviceMonitoringRoutes);
 app.use("/api/export", exportRoutes);
 app.use("/api/import", importRoutes);
+app.use("/api/ipList", ipListRoutes);
 
 // root
 app.get("/", (req, res) => {

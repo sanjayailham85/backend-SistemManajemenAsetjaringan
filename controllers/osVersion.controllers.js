@@ -35,7 +35,7 @@ const getOsVersionById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const osVersion = await OsVersion.getById(id);
+    const osVersion = await OsVersion.getOsVersionById(id);
     if (!osVersion) {
       return res.status(404).json({ message: "OS version not found" });
     }
@@ -80,7 +80,7 @@ const updateOsVersion = async (req, res) => {
     const { id } = req.params;
     const { name, version } = req.body;
 
-    const existingOsVersion = await OsVersion.getById(id);
+    const existingOsVersion = await OsVersion.getOsVersionById(id);
     if (!existingOsVersion) {
       return res.status(404).json({ message: "OS version not found" });
     }
@@ -103,7 +103,7 @@ const deleteOsVersion = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const existingOsVersion = await OsVersion.getById(id);
+    const existingOsVersion = await OsVersion.getOsVersionById(id);
     if (!existingOsVersion) {
       return res.status(404).json({ message: "OS version not found" });
     }

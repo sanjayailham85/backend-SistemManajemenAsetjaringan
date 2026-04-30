@@ -3,6 +3,7 @@ const router = express.Router();
 
 const multer = require("multer");
 const path = require("path");
+const authMiddleware = require("../middlewares/auth.middleware");
 
 const { importModule } = require("../controllers/import.controller");
 
@@ -17,6 +18,6 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-router.post("/", upload.single("file"), importModule);
+router.post("/", authMiddleware, upload.single("file"), importModule);
 
 module.exports = router;

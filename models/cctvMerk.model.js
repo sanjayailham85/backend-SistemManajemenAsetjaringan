@@ -1,28 +1,32 @@
 const db = require("../config/db");
 
-const OsVersion = {
+const CCTVMerk = {
   getAll: async (limit, offset) => {
-    const safeLimit = Math.max(1, parseInt(limit, 10) || 10);
-    const safeOffset = Math.max(0, parseInt(offset, 10) || 0);
     const [rows] = await db.query(
       `
-  SELECT * FROM osVersion
-  ORDER BY name ASC
-  LIMIT ? OFFSET ?
-  `,
-      [safeLimit, safeOffset]
+      SELECT 
+        m.*,
+        COUNT(c.id) AS totalController
+      FROM cctvMerk m
+      LEFT JOIN cctvController c ON c.merkId = m.id
+      GROUP BY m.id
+      ORDER BY m.name ASC
+      LIMIT ? OFFSET ?
+      `,
+      [limit, offset]
     );
+
     return rows;
   },
 
   getCount: async () => {
-    const [rows] = await db.query(`SELECT COUNT(*) as total FROM osVersion`);
+    const [rows] = await db.query(`SELECT COUNT(*) as total FROM cctvMerk`);
 
     return rows[0].total;
   },
 
-  getOsVersionById: async (id) => {
-    const [rows] = await db.query("SELECT * FROM osVersion WHERE id = ?", [id]);
+  getById: async (id) => {
+    const [rows] = await db.query("SELECT * FROM cctvMerk WHERE id = ?", [id]);
     return rows[0];
   },
 
@@ -38,7 +42,7 @@ const OsVersion = {
     const values = Object.values(newData);
 
     const [result] = await db.query(
-      `INSERT INTO osVersion (${columns}) VALUES (${placeholders})`,
+      `INSERT INTO cctvMerk (${columns}) VALUES (${placeholders})`,
       values
     );
 
@@ -57,7 +61,7 @@ const OsVersion = {
     const values = [...Object.values(updatedData), id];
 
     const [result] = await db.query(
-      `UPDATE osVersion SET ${columns} WHERE id = ?`,
+      `UPDATE cctvMerk SET ${columns} WHERE id = ?`,
       values
     );
 
@@ -65,9 +69,9 @@ const OsVersion = {
   },
 
   delete: async (id) => {
-    const [result] = await db.query("DELETE FROM osVersion WHERE id = ?", [id]);
+    const [result] = await db.query("DELETE FROM cctvMerk WHERE id = ?", [id]);
     return result.affectedRows;
   },
 };
 
-module.exports = OsVersion;
+module.exports = CCTVMerk;

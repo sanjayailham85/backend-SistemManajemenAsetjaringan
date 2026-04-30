@@ -48,8 +48,17 @@ const getRouterById = async (req, res) => {
 
 const createRouter = async (req, res) => {
   try {
-    const { name, ip, type, location, locationDetail, status, detail, code } =
-      req.body;
+    const {
+      name,
+      ip,
+      type,
+      location,
+      locationDetail,
+      status,
+      detail,
+      code,
+      merk,
+    } = req.body;
 
     if (!name || !ip)
       return res.status(400).json({ message: "Name and IP are required" });
@@ -66,6 +75,7 @@ const createRouter = async (req, res) => {
       status,
       detail,
       code,
+      merk,
     };
     await Router.create(newData);
     await activityLogHelper({
@@ -97,6 +107,7 @@ const updateRouter = async (req, res) => {
       status,
       detail,
       code,
+      merk,
     } = req.body;
 
     if (!id) return res.status(400).json({ message: "Router ID is required" });
@@ -115,6 +126,7 @@ const updateRouter = async (req, res) => {
       status,
       detail,
       code,
+      merk,
     };
     const affectedRows = await Router.update(id, newData);
 

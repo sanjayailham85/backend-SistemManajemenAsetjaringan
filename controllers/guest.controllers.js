@@ -68,6 +68,8 @@ const getGuestById = async (req, res) => {
       detail: guest.detail,
       auth: guest.auth,
       osVersion: guest.osVersion,
+      osName: host.osName,
+      osVersion: host.osVersion,
       domainInstance: guest.domainInstance,
       model: guest.model,
       createdAt: physical.createdAt,

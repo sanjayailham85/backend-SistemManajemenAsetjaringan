@@ -4,8 +4,8 @@ const router = express.Router();
 const accessPointController = require("../controllers/accessPoint.controllers");
 const authMiddleware = require("../middlewares/auth.middleware");
 
-router.get("/", accessPointController.getAllAccessPoint);
-router.get("/:id", accessPointController.getAccessPointById);
+router.get("/", authMiddleware, accessPointController.getAllAccessPoint);
+router.get("/:id", authMiddleware, accessPointController.getAccessPointById);
 
 router.post("/", authMiddleware, accessPointController.createAccessPoint);
 router.put("/:id", authMiddleware, accessPointController.updateAccessPoint);

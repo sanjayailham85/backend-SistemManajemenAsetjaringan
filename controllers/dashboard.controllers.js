@@ -4,19 +4,26 @@ const getDashboardSummary = async (req, res) => {
   try {
     const data = await Dashboard.getSummary();
 
-    const totalStatus =
-      data.networkDevices.reduce((sum, item) => sum + item.value, 0) +
-      data.securityDevices.reduce((sum, item) => sum + item.value, 0);
-
     res.status(200).json({
       racks: data.racks,
       physical: data.physical,
       host: data.host,
       guest: data.guest,
-      networkDevices: data.networkDevices,
-      securityDevices: data.securityDevices,
+
+      // =========================
+      // DEVICE (SUDAH DIGABUNG)
+      // =========================
+      devices: data.devices,
+
+      totalDevices: data.totalDevices,
+
+      // STATUS
       deviceStatus: data.deviceStatus,
-      totalDevices: totalStatus,
+      deviceStatusPerDevice: data.deviceStatusPerDevice,
+
+      // MERK
+      cctvByMerk: data.cctvByMerk,
+      accessPointByMerk: data.accessPointByMerk,
     });
   } catch (error) {
     console.error("Dashboard error:", error);

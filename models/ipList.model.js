@@ -12,51 +12,29 @@ const getCurrentDateTime = () => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
 
-const Guest = {
+const IPList = {
   getAll: async (limit, offset) => {
     const safeLimit = Math.max(1, parseInt(limit, 10) || 10);
     const safeOffset = Math.max(0, parseInt(offset, 10) || 0);
     const [rows] = await db.query(
       `
-      SELECT 
-        g.*,
-        o.name AS osName,
-        o.version AS osVersion
-      FROM guest g
-      LEFT JOIN osVersion o ON g.osVersion = o.id
-      LIMIT ? OFFSET ?
-    `,
+  SELECT * FROM ipList
+  ORDER BY ip ASC
+  LIMIT ? OFFSET ?
+  `,
       [safeLimit, safeOffset]
     );
     return rows;
   },
 
   getCount: async () => {
-    const [rows] = await db.query(`SELECT COUNT(*) as total FROM guest`);
+    const [rows] = await db.query(`SELECT COUNT(*) as total FROM ipList`);
 
     return rows[0].total;
   },
-
   getById: async (id) => {
-    const [rows] = await db.query(
-      `
-      SELECT 
-        g.*,
-        o.name AS osName,
-        o.version AS osVersion
-      FROM guest g
-      LEFT JOIN osVersion o ON g.osVersion = o.id
-      WHERE g.id = ?
-      `,
-      [id]
-    );
+    const [rows] = await db.query("SELECT * FROM ipList WHERE id = ?", [id]);
     return rows[0];
-  },
-  getByHostId: async (hostId) => {
-    const [rows] = await db.query("SELECT id FROM guest WHERE hostId = ?", [
-      hostId,
-    ]);
-    return rows;
   },
 
   create: async (data) => {
@@ -64,7 +42,6 @@ const Guest = {
 
     const newData = {
       ...data,
-      category: "server",
       createdAt: now,
       updatedAt: now,
     };
@@ -76,29 +53,39 @@ const Guest = {
     const values = Object.values(newData);
 
     const [result] = await db.query(
-      `INSERT INTO guest (${columns}) VALUES (${placeholders})`,
+      `INSERT INTO ipList (${columns}) VALUES (${placeholders})`,
       values
     );
+
     return result;
   },
 
   update: async (id, data) => {
-    const columns = Object.keys(data)
+    const now = getCurrentDateTime();
+
+    const updatedData = {
+      ...data,
+      updatedAt: now,
+    };
+
+    const columns = Object.keys(updatedData)
       .map((key) => `${key} = ?`)
       .join(", ");
-    const values = [...Object.values(data), id];
+
+    const values = [...Object.values(updatedData), id];
 
     const [result] = await db.query(
-      `UPDATE guest SET ${columns} WHERE id = ?`,
+      `UPDATE ipList SET ${columns} WHERE id = ?`,
       values
     );
+
     return result.affectedRows;
   },
 
   delete: async (id) => {
-    const [result] = await db.query("DELETE FROM guest WHERE id = ?", [id]);
+    const [result] = await db.query("DELETE FROM ipList WHERE id = ?", [id]);
     return result.affectedRows;
   },
 };
 
-module.exports = Guest;
+module.exports = IPList;

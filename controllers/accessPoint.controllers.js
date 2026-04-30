@@ -4,30 +4,28 @@ const { v4: uuidv4 } = require("uuid");
 
 const getAllAccessPoint = async (req, res) => {
   try {
-    let { page, limit } = req.query;
+    let { page, limit, controllerId } = req.query;
 
     page = Number(page);
     limit = Number(limit);
 
-    page = Number.isInteger(page) && page > 0 ? page : 1;
-    limit = Number.isInteger(limit) && limit > 0 ? limit : 10;
+    page = page > 0 ? page : 1;
+    limit = limit > 0 ? limit : 10;
 
     const offset = (page - 1) * limit;
 
-    const logs = await AccessPoint.getAll(limit, offset);
-    const total = await AccessPoint.getCount();
-
-    const totalPages = Math.ceil(total / limit);
+    const logs = await AccessPoint.getAll(limit, offset, controllerId);
+    const total = await AccessPoint.getCount(controllerId);
 
     res.status(200).json({
       data: logs,
       page,
       limit,
       total,
-      totalPages,
+      totalPages: Math.ceil(total / limit),
     });
   } catch (error) {
-    console.error("Error getting access point:", error);
+    console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -57,10 +55,12 @@ const createAccessPoint = async (req, res) => {
       tahunAnggaran,
       mac,
       controllerAP,
+      controllerId,
       type,
       location,
       locationDetail,
       code,
+      merk,
     } = req.body;
 
     if (!name || !ip) {
@@ -76,10 +76,12 @@ const createAccessPoint = async (req, res) => {
       tahunAnggaran,
       mac,
       controllerAP,
+      controllerId,
       type,
       location,
       locationDetail,
       code,
+      merk,
     };
 
     await AccessPoint.create(newData);
@@ -110,15 +112,13 @@ const updateAccessPoint = async (req, res) => {
       tahunAnggaran,
       mac,
       controllerAP,
+      controllerId,
       type,
       location,
       locationDetail,
       code,
+      merk,
     } = req.body;
-
-    if (!id) {
-      return res.status(400).json({ message: "Access Point ID is required" });
-    }
 
     const oldData = await AccessPoint.getById(id);
 
@@ -132,17 +132,16 @@ const updateAccessPoint = async (req, res) => {
       tahunAnggaran,
       mac,
       controllerAP,
+      controllerId,
       type,
       location,
       locationDetail,
       code,
+      merk,
     };
 
-    const affectedRows = await AccessPoint.update(id, newData);
+    await AccessPoint.update(id, newData);
 
-    if (affectedRows === 0) {
-      return res.status(404).json({ message: "Access Point not found" });
-    }
     await activityLogHelper({
       userId: req.user?.id,
       module: "accessPoint",
@@ -164,21 +163,13 @@ const deleteAccessPoint = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!id) {
-      return res.status(400).json({ message: "Access Point ID is required" });
-    }
-
     const oldData = await AccessPoint.getById(id);
 
     if (!oldData) {
       return res.status(404).json({ message: "Access Point not found" });
     }
 
-    const affectedRows = await AccessPoint.delete(id);
-
-    if (affectedRows === 0) {
-      return res.status(404).json({ message: "Access Point not found" });
-    }
+    await AccessPoint.delete(id);
 
     await activityLogHelper({
       userId: req.user?.id ?? req.user?.userId ?? null,

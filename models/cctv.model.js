@@ -14,22 +14,38 @@ const getCurrentDateTime = () => {
 };
 
 const CCTV = {
-  getAll: async (limit, offset) => {
-    const safeLimit = Math.max(1, parseInt(limit, 10) || 10);
-    const safeOffset = Math.max(0, parseInt(offset, 10) || 0);
+  getAll: async (limit, offset, controllerId) => {
     const [rows] = await db.query(
       `
-  SELECT * FROM cctv
-  ORDER BY name ASC
-  LIMIT ? OFFSET ?
-  `,
-      [safeLimit, safeOffset]
+      SELECT * FROM cctv
+      WHERE controllerId = ?
+      ORDER BY name ASC
+      LIMIT ? OFFSET ?
+      `,
+      [controllerId, limit, offset]
     );
+
     return rows;
   },
 
-  getCount: async () => {
-    const [rows] = await db.query(`SELECT COUNT(*) as total FROM cctv`);
+  getAllForMonitoring: async () => {
+    const [rows] = await db.query(`
+      SELECT * FROM cctv
+      ORDER BY name ASC
+    `);
+
+    return rows;
+  },
+
+  getCount: async (controllerId) => {
+    const [rows] = await db.query(
+      `
+      SELECT COUNT(*) as total
+      FROM cctv
+      WHERE controllerId = ?
+      `,
+      [controllerId]
+    );
 
     return rows[0].total;
   },
@@ -37,6 +53,14 @@ const CCTV = {
   getById: async (id) => {
     const [rows] = await db.query("SELECT * FROM cctv WHERE id = ?", [id]);
     return rows[0];
+  },
+
+  getByControllerId: async (controllerId) => {
+    const [rows] = await db.query(
+      "SELECT id FROM cctv WHERE controllerId = ?",
+      [controllerId]
+    );
+    return rows;
   },
 
   create: async (data) => {
