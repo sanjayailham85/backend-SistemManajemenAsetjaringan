@@ -63,6 +63,8 @@ module.exports = {
       model: "model",
       osVersion: "osVersion",
       status: "status",
+      detail: "detail",
+      hostId: "hostId",
       authUsername: "authUsername",
       authPassword: "authPassword",
       createdAt: "createdAt",

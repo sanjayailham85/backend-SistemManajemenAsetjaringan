@@ -8,7 +8,7 @@ let cachedDevices = [];
 let previousStatuses = {};
 
 const REFRESH_INTERVAL = 60000; // refresh DB 1 menit
-const MONITOR_INTERVAL = 60000; // cek status 10 detik
+const MONITOR_INTERVAL = 10000; // cek status 10 detik
 const CONCURRENT_LIMIT = 10; // maksimal 10 ping bersamaan
 
 // refresh daftar device dari database

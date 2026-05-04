@@ -2,24 +2,14 @@ const express = require("express");
 const router = express.Router();
 
 const multer = require("multer");
-const path = require("path");
 const authMiddleware = require("../middlewares/auth.middleware");
 
 const { importModule } = require("../controllers/import.controller");
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
 
 const upload = multer({
   storage: multer.memoryStorage(),
 });
 
-router.post("/", upload.single("file"), importModule);
+router.post("/", authMiddleware, upload.single("file"), importModule);
 
 module.exports = router;

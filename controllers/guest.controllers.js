@@ -72,8 +72,8 @@ const getGuestById = async (req, res) => {
       osVersion: host.osVersion,
       domainInstance: guest.domainInstance,
       model: guest.model,
-      createdAt: physical.createdAt,
-      updatedAt: physical.updatedAt,
+      createdAt: guest.createdAt,
+      updatedAt: guest.updatedAt,
       host: host
         ? {
             id: host.id,
@@ -85,8 +85,8 @@ const getGuestById = async (req, res) => {
             serverDevice: host.serverDevice,
             status: host.status,
             detail: host.detail,
-            createdAt: physical.createdAt,
-            updatedAt: physical.updatedAt,
+            createdAt: host.createdAt,
+            updatedAt: host.updatedAt,
             physical: physical
               ? {
                   id: physical.id,

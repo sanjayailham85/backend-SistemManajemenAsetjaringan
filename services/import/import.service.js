@@ -72,6 +72,8 @@ const importData = async (module, fileBuffer) => {
       `;
 
       await db.query(query, values);
+      console.log("PREPARED DATA:", preparedData);
+      console.log("ERRORS VALIDATION:", errors);
       inserted++;
     } catch (err) {
       errors.push({ data, reason: err.message });

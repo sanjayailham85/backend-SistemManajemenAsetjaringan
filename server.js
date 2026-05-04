@@ -6,10 +6,18 @@ require("dotenv").config();
 const app = express();
 const server = http.createServer(app);
 
+const allowedOrigins = ["http://localhost:5173", ""];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  })
+);
+
 // middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
 app.use("/uploads", express.static("uploads"));
 
 // socket
