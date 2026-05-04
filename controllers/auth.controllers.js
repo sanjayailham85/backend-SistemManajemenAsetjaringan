@@ -72,7 +72,13 @@ const register = async (req, res) => {
     }
 
     // validasi role
-    const allowedRoles = ["guest", "operator", "admin", "superadmin"];
+    const allowedRoles = [
+      "sysAdmin",
+      "networking",
+      "operator",
+      "admin",
+      "superadmin",
+    ];
 
     if (!allowedRoles.includes(role)) {
       return res.status(400).json({
@@ -85,6 +91,12 @@ const register = async (req, res) => {
       "SELECT id FROM users WHERE username = ?",
       [username]
     );
+
+    if (req.user.role === "admin" && role === "superadmin") {
+      return res.status(403).json({
+        message: "Admin tidak bisa membuat superadmin",
+      });
+    }
 
     if (existing.length > 0) {
       return res.status(409).json({
@@ -158,10 +170,16 @@ const updateUser = async (req, res) => {
     const { username, name, role, password } = req.body;
 
     const [user] = await db.execute("SELECT * FROM users WHERE id = ?", [id]);
-
+    targetUser = user[0];
     if (user.length === 0) {
       return res.status(404).json({
         message: "User not found",
+      });
+    }
+
+    if (req.user.role === "admin" && targetUser.role === "superadmin") {
+      return res.status(403).json({
+        message: "Admin tidak bisa mengubah superadmin",
       });
     }
 
@@ -193,14 +211,25 @@ const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const [user] = await db.execute("SELECT id FROM users WHERE id = ?", [id]);
-
+    const [user] = await db.execute("SELECT * FROM users WHERE id = ?", [id]);
+    if (req.user.id === id) {
+      return res.status(403).json({
+        message: "Anda tidak dapat menghapus akun sendiri",
+      });
+    }
     if (user.length === 0) {
       return res.status(404).json({
         message: "User not found",
       });
     }
 
+    targetUser = user[0];
+
+    if (req.user.role === "admin" && targetUser.role === "superadmin") {
+      return res.status(403).json({
+        message: "Admin tidak bisa menghapus superadmin",
+      });
+    }
     await db.execute("DELETE FROM users WHERE id = ?", [id]);
 
     return res.status(200).json({
@@ -214,11 +243,47 @@ const deleteUser = async (req, res) => {
   }
 };
 
+const updatePassword = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { oldPassword, newPassword } = req.body;
+
+    const [rows] = await db.execute("SELECT * FROM users WHERE id = ?", [
+      userId,
+    ]);
+
+    const user = rows[0];
+
+    const isMatch = await comparePassword(oldPassword, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({
+        message: "Old password is incorrect",
+      });
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+
+    await db.execute(
+      "UPDATE users SET password = ?, updatedAt = NOW() WHERE id = ?",
+      [hashed, userId]
+    );
+
+    return res.status(200).json({
+      message: "Password updated successfully",
+    });
+  } catch (error) {
+    console.error("UPDATE PASSWORD ERROR:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   login,
   register,
   getAllUsers,
   getUserById,
   updateUser,
+  updatePassword,
   deleteUser,
 };

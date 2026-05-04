@@ -15,12 +15,12 @@ const normalizeRow = (row) => {
   return newRow;
 };
 
-const importData = async (module, filePath) => {
+const importData = async (module, fileBuffer) => {
   const moduleConfig = config[module];
 
   if (!moduleConfig) throw new Error("Module tidak ditemukan");
 
-  const workbook = xlsx.readFile(filePath);
+  const workbook = xlsx.read(fileBuffer, { type: "buffer" });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
   const jsonData = xlsx.utils.sheet_to_json(sheet, { defval: null });
@@ -44,7 +44,8 @@ const importData = async (module, filePath) => {
         value = excelDateToJSDate(value);
       }
 
-      mapped[normalizedConfig[key]] = value?.toString().trim?.() ?? value;
+      mapped[normalizedConfig[key]] =
+        typeof value === "string" ? value.trim() : value;
     }
 
     if (!mapped.name) errors.push({ row: i + 2, reason: "Name wajib" });
@@ -57,8 +58,10 @@ const importData = async (module, filePath) => {
     return { success: false, message: "Invalid data", errors };
   }
 
-  try {
-    for (const data of preparedData) {
+  let inserted = 0;
+
+  for (const data of preparedData) {
+    try {
       const keys = Object.keys(data);
       const values = Object.values(data);
 
@@ -69,12 +72,17 @@ const importData = async (module, filePath) => {
       `;
 
       await db.query(query, values);
+      inserted++;
+    } catch (err) {
+      errors.push({ data, reason: err.message });
     }
-
-    return { success: true, inserted: preparedData.length };
-  } catch (err) {
-    return { success: false, message: err.message };
   }
+
+  return {
+    success: errors.length === 0,
+    inserted,
+    errors,
+  };
 };
 
 module.exports = { importData };

@@ -10,6 +10,7 @@ const {
   getAllUsers,
   getUserById,
   updateUser,
+  updatePassword,
   deleteUser,
 } = require("../controllers/auth.controllers");
 
@@ -18,35 +19,36 @@ router.post("/login", login);
 router.post(
   "/register",
   authMiddleware,
-  roleMiddleware(["superadmin"]),
+  roleMiddleware(["superadmin", "admin"]),
   register
 );
 
 router.get(
   "/users",
   authMiddleware,
-  roleMiddleware(["superadmin"]),
+  roleMiddleware(["superadmin", "admin"]),
   getAllUsers
 );
 
 router.get(
   "/users/:id",
   authMiddleware,
-  roleMiddleware(["superadmin"]),
+  roleMiddleware(["superadmin", "admin"]),
   getUserById
 );
 
+router.put("/users/updatePassword", authMiddleware, updatePassword);
 router.put(
   "/users/:id",
   authMiddleware,
-  roleMiddleware(["superadmin"]),
+  roleMiddleware(["superadmin", "admin"]),
   updateUser
 );
 
 router.delete(
   "/users/:id",
   authMiddleware,
-  roleMiddleware(["superadmin"]),
+  roleMiddleware(["superadmin", "admin"]),
   deleteUser
 );
 

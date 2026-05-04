@@ -151,6 +151,7 @@ const createPhysical = async (req, res) => {
 const updatePhysical = async (req, res) => {
   try {
     const { id } = req.params;
+
     const {
       name,
       ip,
@@ -168,6 +169,7 @@ const updatePhysical = async (req, res) => {
       detail,
       category,
     } = req.body;
+
     if (!id)
       return res.status(400).json({ message: "Physical ID is required" });
 
@@ -175,6 +177,13 @@ const updatePhysical = async (req, res) => {
 
     if (!oldData) {
       return res.status(404).json({ message: "Physical not found" });
+    }
+
+    // file baru
+    const newImage = req.file ? req.file.filename : null;
+
+    if (newImage && oldData.image) {
+      deleteImage(oldData.image);
     }
 
     const newData = {
@@ -193,17 +202,13 @@ const updatePhysical = async (req, res) => {
       storage,
       detail,
       category,
+      image: newImage || oldData.image,
     };
 
-    const image = req.file ? req.file.filename : undefined;
-
-    // Hapus image lama jika ada file baru
-    if (image && oldData.image) {
-      deleteImage(oldData.image);
-    }
     const affectedRows = await Physical.update(id, newData);
+
     if (affectedRows === 0)
-      return res.status(404).json({ message: "Guest server not found" });
+      return res.status(404).json({ message: "Physical not found" });
 
     await activityLogHelper({
       userId: req.user?.id,
@@ -215,7 +220,7 @@ const updatePhysical = async (req, res) => {
       newData,
     });
 
-    res.status(200).json({ message: "Physical server updated" });
+    res.status(200).json({ message: "Physical updated successfully" });
   } catch (error) {
     console.error("Error updating physical server:", error);
     res.status(500).json({ message: "Internal server error" });

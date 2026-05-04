@@ -16,8 +16,10 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage });
+const upload = multer({
+  storage: multer.memoryStorage(),
+});
 
-router.post("/", authMiddleware, upload.single("file"), importModule);
+router.post("/", upload.single("file"), importModule);
 
 module.exports = router;
