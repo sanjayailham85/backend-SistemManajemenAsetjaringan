@@ -1,6 +1,7 @@
 const AccessPoint = require("../models/accessPoint.model");
 const activityLogHelper = require("../helpers/activityLog.helper");
 const { v4: uuidv4 } = require("uuid");
+const { deleteImage } = require("../helpers/file.helper");
 
 const getAllAccessPoint = async (req, res) => {
   try {
@@ -62,6 +63,7 @@ const createAccessPoint = async (req, res) => {
       code,
       merk,
     } = req.body;
+    const image = req.file ? req.file.filename : null;
 
     if (!name || !ip) {
       return res.status(400).json({ message: "Name and ip are required" });
@@ -82,6 +84,7 @@ const createAccessPoint = async (req, res) => {
       locationDetail,
       code,
       merk,
+      image,
     };
 
     await AccessPoint.create(newData);
@@ -125,7 +128,11 @@ const updateAccessPoint = async (req, res) => {
     if (!oldData) {
       return res.status(404).json({ message: "Access Point not found" });
     }
+    const newImage = req.file ? req.file.filename : null;
 
+    if (newImage && oldData.image) {
+      deleteImage(oldData.image);
+    }
     const newData = {
       name,
       ip,
@@ -138,6 +145,7 @@ const updateAccessPoint = async (req, res) => {
       locationDetail,
       code,
       merk,
+      image: newImage || oldData.image,
     };
 
     await AccessPoint.update(id, newData);
@@ -167,6 +175,9 @@ const deleteAccessPoint = async (req, res) => {
 
     if (!oldData) {
       return res.status(404).json({ message: "Access Point not found" });
+    }
+    if (oldData.image) {
+      deleteImage(oldData.image);
     }
 
     await AccessPoint.delete(id);

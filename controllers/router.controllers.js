@@ -1,6 +1,7 @@
 const Router = require("../models/router.model");
 const activityLogHelper = require("../helpers/activityLog.helper");
 const { v4: uuidv4 } = require("uuid");
+const { deleteImage } = require("../helpers/file.helper");
 
 const getAllRouter = async (req, res) => {
   try {
@@ -59,6 +60,7 @@ const createRouter = async (req, res) => {
       code,
       merk,
     } = req.body;
+    const image = req.file ? req.file.filename : null;
 
     if (!name || !ip)
       return res.status(400).json({ message: "Name and IP are required" });
@@ -76,6 +78,7 @@ const createRouter = async (req, res) => {
       detail,
       code,
       merk,
+      image,
     };
     await Router.create(newData);
     await activityLogHelper({
@@ -117,6 +120,12 @@ const updateRouter = async (req, res) => {
       return res.status(404).json({ message: "Router not found" });
     }
 
+    const newImage = req.file ? req.file.filename : null;
+
+    if (newImage && oldData.image) {
+      deleteImage(oldData.image);
+    }
+
     const newData = {
       name,
       ip,
@@ -127,6 +136,7 @@ const updateRouter = async (req, res) => {
       detail,
       code,
       merk,
+      image: newImage || oldData.image,
     };
     const affectedRows = await Router.update(id, newData);
 
@@ -158,6 +168,9 @@ const deleteRouter = async (req, res) => {
 
     if (!oldData) {
       return res.status(404).json({ message: "Guest not found" });
+    }
+    if (oldData.image) {
+      deleteImage(oldData.image);
     }
 
     const affectedRows = await Router.delete(id);

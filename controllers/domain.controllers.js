@@ -1,4 +1,4 @@
-const IPList = require("../models/ipList.model");
+const Domain = require("../models/domain.model");
 const activityLogHelper = require("../helpers/activityLog.helper");
 const { v4: uuidv4 } = require("uuid");
 
@@ -14,8 +14,8 @@ const getAll = async (req, res) => {
 
     const offset = (page - 1) * limit;
 
-    const logs = await IPList.getAll(limit, offset);
-    const total = await IPList.getCount();
+    const logs = await Domain.getAll(limit, offset);
+    const total = await Domain.getCount();
 
     res.status(200).json({
       data: logs,
@@ -34,24 +34,24 @@ const getById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const ip = await IPList.getById(id);
+    const domain = await Domain.getById(id);
 
-    if (!ip) {
-      return res.status(404).json({ message: "IPList not found" });
+    if (!domain) {
+      return res.status(404).json({ message: "Domain not found" });
     }
 
-    res.status(200).json(ip);
+    res.status(200).json(domain);
   } catch (error) {
-    console.error("Error getting ip list:", error);
+    console.error("Error getting access point:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
 const create = async (req, res) => {
   try {
-    const { ip, kegunaan, author, status } = req.body;
+    const { name, subDomain, author, contact, status } = req.body;
 
-    if (!ip) {
+    if (!name) {
       return res.status(400).json({ message: "ip are required" });
     }
 
@@ -59,26 +59,27 @@ const create = async (req, res) => {
 
     const newData = {
       id,
-      ip,
-      kegunaan,
+      name,
+      subDomain,
       author,
+      contact,
       status,
     };
 
-    await IPList.create(newData);
+    await Domain.create(newData);
 
     await activityLogHelper({
       userId: req.user?.id ?? req.user?.userId ?? null,
-      module: "ipList",
+      module: "domain",
       action: "create",
       targetId: id,
-      description: `Created IPList ${ip}`,
+      description: `Created Domain ${name}`,
       newData,
     });
 
-    res.status(201).json({ message: "IPList created", id });
+    res.status(201).json({ message: "Domain created", id });
   } catch (error) {
-    console.error("Error creating IPList:", error);
+    console.error("Error creating Domain:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -87,64 +88,65 @@ const update = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { ip, kegunaan, author, status } = req.body;
+    const { name, subDomain, author, contact, status } = req.body;
 
-    const oldData = await IPList.getById(id);
+    const oldData = await Domain.getById(id);
 
     if (!oldData) {
-      return res.status(404).json({ message: "IPList not found" });
+      return res.status(404).json({ message: "Domain not found" });
     }
 
     const newData = {
-      ip,
-      kegunaan,
+      name,
+      subDomain,
       author,
+      contact,
       status,
     };
 
-    await IPList.update(id, newData);
+    await Domain.update(id, newData);
 
     await activityLogHelper({
       userId: req.user?.id,
-      module: "ipList",
+      module: "domain",
       action: "update",
       targetId: id,
-      description: `Updated IPList ${ip || oldData.ip}`,
+      description: `Updated Domain ${name || oldData.name}`,
       oldData,
       newData,
     });
 
-    res.status(200).json({ message: "IPList updated" });
+    res.status(200).json({ message: "Domain updated" });
   } catch (error) {
-    console.error("Error updating IPList:", error);
+    console.error("Error updating Domain:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
-const deleteIP = async (req, res) => {
+const deleteDomain = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const oldData = await IPList.getById(id);
+    const oldData = await Domain.getById(id);
 
     if (!oldData) {
-      return res.status(404).json({ message: "IPList not found" });
+      return res.status(404).json({ message: "Domain not found" });
     }
 
-    await IPList.delete(id);
+    await Domain.delete(id);
 
     await activityLogHelper({
       userId: req.user?.id ?? req.user?.userId ?? null,
-      module: "ipList",
+      module: "domain",
       action: "delete",
       targetId: id,
-      description: `Deleted IPList ${oldData.ip}`,
+      description: `Deleted Domain ${oldData.name}`,
       oldData,
     });
 
-    res.status(200).json({ message: "IPList deleted" });
+    res.status(200).json({ message: "Domain deleted" });
   } catch (error) {
-    console.error("Error deleting IPList:", error);
+    console.error("Error deleting Domain:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -154,5 +156,5 @@ module.exports = {
   getById,
   create,
   update,
-  deleteIP,
+  deleteDomain,
 };

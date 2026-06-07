@@ -114,6 +114,7 @@ const createHost = async (req, res) => {
       status,
       detail,
     } = req.body;
+    console.log(req.body);
 
     if (!name || !ip || !physicalId)
       return res

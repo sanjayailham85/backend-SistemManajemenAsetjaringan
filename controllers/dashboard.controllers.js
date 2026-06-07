@@ -10,20 +10,16 @@ const getDashboardSummary = async (req, res) => {
       host: data.host,
       guest: data.guest,
 
-      // =========================
-      // DEVICE (SUDAH DIGABUNG)
-      // =========================
       devices: data.devices,
 
       totalDevices: data.totalDevices,
 
-      // STATUS
       deviceStatus: data.deviceStatus,
       deviceStatusPerDevice: data.deviceStatusPerDevice,
 
-      // MERK
       cctvByMerk: data.cctvByMerk,
       accessPointByMerk: data.accessPointByMerk,
+      switchByMerk: data.switchByMerk,
     });
   } catch (error) {
     console.error("Dashboard error:", error);

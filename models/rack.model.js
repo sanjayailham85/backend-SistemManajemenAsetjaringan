@@ -1,17 +1,34 @@
 const db = require("../config/db");
 
 const Rack = {
+  // getAll: async (limit, offset) => {
+  //   const safeLimit = Math.max(1, parseInt(limit, 10) || 10);
+  //   const safeOffset = Math.max(0, parseInt(offset, 10) || 0);
+  //   const [rows] = await db.query(
+  //     `
+  // SELECT * FROM rack
+  // ORDER BY name ASC
+  // LIMIT ? OFFSET ?
+  // `,
+  //     [safeLimit, safeOffset]
+  //   );
+  //   return rows;
+  // },
   getAll: async (limit, offset) => {
-    const safeLimit = Math.max(1, parseInt(limit, 10) || 10);
-    const safeOffset = Math.max(0, parseInt(offset, 10) || 0);
     const [rows] = await db.query(
       `
-  SELECT * FROM rack
-  ORDER BY name ASC
-  LIMIT ? OFFSET ?
-  `,
-      [safeLimit, safeOffset]
+      SELECT 
+        r.*,
+        COUNT(t.id) AS total
+      FROM rack r
+      LEFT JOIN physicalServer t ON t.rackId = r.id
+      GROUP BY r.id
+      ORDER BY r.name ASC
+      LIMIT ? OFFSET ?
+      `,
+      [limit, offset]
     );
+
     return rows;
   },
 

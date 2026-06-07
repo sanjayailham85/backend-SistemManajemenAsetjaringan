@@ -1,5 +1,4 @@
 const db = require("../config/db");
-
 const getCurrentDateTime = () => {
   const now = new Date();
 
@@ -13,54 +12,29 @@ const getCurrentDateTime = () => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
 
-const Switch = {
-  getAll: async (limit, offset, controllerId) => {
+const Lisensi = {
+  getAll: async (limit, offset) => {
+    const safeLimit = Math.max(1, parseInt(limit, 10) || 10);
+    const safeOffset = Math.max(0, parseInt(offset, 10) || 0);
     const [rows] = await db.query(
       `
-      SELECT * FROM switch
-      WHERE controllerId = ?
-      ORDER BY name ASC
-      LIMIT ? OFFSET ?
-      `,
-      [controllerId, limit, offset]
+  SELECT * FROM lisensi
+  ORDER BY name ASC
+  LIMIT ? OFFSET ?
+  `,
+      [safeLimit, safeOffset]
     );
-
     return rows;
   },
 
-  getAllForMonitoring: async () => {
-    const [rows] = await db.query(`
-      SELECT * FROM switch
-      ORDER BY name ASC
-    `);
-
-    return rows;
-  },
-
-  getCount: async (controllerId) => {
-    const [rows] = await db.query(
-      `
-      SELECT COUNT(*) as total
-      FROM switch
-      WHERE controllerId = ?
-      `,
-      [controllerId]
-    );
+  getCount: async () => {
+    const [rows] = await db.query(`SELECT COUNT(*) as total FROM lisensi`);
 
     return rows[0].total;
   },
-
   getById: async (id) => {
-    const [rows] = await db.query("SELECT * FROM switch WHERE id = ?", [id]);
+    const [rows] = await db.query("SELECT * FROM lisensi WHERE id = ?", [id]);
     return rows[0];
-  },
-
-  getByControllerId: async (controllerId) => {
-    const [rows] = await db.query(
-      "SELECT id FROM switch WHERE controllerId = ?",
-      [controllerId]
-    );
-    return rows;
   },
 
   create: async (data) => {
@@ -68,7 +42,6 @@ const Switch = {
 
     const newData = {
       ...data,
-      category: "network",
       createdAt: now,
       updatedAt: now,
     };
@@ -80,7 +53,7 @@ const Switch = {
     const values = Object.values(newData);
 
     const [result] = await db.query(
-      `INSERT INTO switch (${columns}) VALUES (${placeholders})`,
+      `INSERT INTO lisensi (${columns}) VALUES (${placeholders})`,
       values
     );
 
@@ -102,7 +75,7 @@ const Switch = {
     const values = [...Object.values(updatedData), id];
 
     const [result] = await db.query(
-      `UPDATE switch SET ${columns} WHERE id = ?`,
+      `UPDATE lisensi SET ${columns} WHERE id = ?`,
       values
     );
 
@@ -110,9 +83,9 @@ const Switch = {
   },
 
   delete: async (id) => {
-    const [result] = await db.query("DELETE FROM switch WHERE id = ?", [id]);
+    const [result] = await db.query("DELETE FROM lisensi WHERE id = ?", [id]);
     return result.affectedRows;
   },
 };
 
-module.exports = Switch;
+module.exports = Lisensi;

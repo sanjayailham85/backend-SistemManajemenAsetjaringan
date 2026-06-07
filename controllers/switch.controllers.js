@@ -1,10 +1,11 @@
 const Switch = require("../models/switch.model");
 const activityLogHelper = require("../helpers/activityLog.helper");
 const { v4: uuidv4 } = require("uuid");
+const { deleteImage } = require("../helpers/file.helper");
 
 const getAllSwitch = async (req, res) => {
   try {
-    let { page, limit } = req.query;
+    let { page, limit, controllerId } = req.query;
 
     page = Number(page);
     limit = Number(limit);
@@ -14,11 +15,11 @@ const getAllSwitch = async (req, res) => {
 
     const offset = (page - 1) * limit;
 
-    const logs = await Switch.getAll(limit, offset);
-    const total = await Switch.getCount();
+    const logs = await Switch.getAll(limit, offset, controllerId);
+    const total = await Switch.getCount(controllerId);
 
     const totalPages = Math.ceil(total / limit);
-
+    console.log("SWITCH LOGS:", logs);
     res.status(200).json({
       data: logs,
       page,
@@ -48,8 +49,19 @@ const getSwitchById = async (req, res) => {
 
 const createSwitch = async (req, res) => {
   try {
-    const { name, ip, type, location, locationDetail, status, detail, code } =
-      req.body;
+    const {
+      name,
+      ip,
+      type,
+      location,
+      locationDetail,
+      controllerId,
+      status,
+      detail,
+      code,
+      merk,
+    } = req.body;
+    const image = req.file ? req.file.filename : null;
 
     if (!name || !ip)
       return res.status(400).json({ message: "Name and IP are required" });
@@ -63,9 +75,12 @@ const createSwitch = async (req, res) => {
       type,
       location,
       locationDetail,
+      controllerId,
       status,
       detail,
       code,
+      merk,
+      image,
     };
 
     await Switch.create(newData);
@@ -89,8 +104,18 @@ const updateSwitch = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { name, ip, type, location, locationDetail, status, detail, code } =
-      req.body;
+    const {
+      name,
+      ip,
+      type,
+      location,
+      locationDetail,
+      controllerId,
+      status,
+      detail,
+      code,
+      merk,
+    } = req.body;
 
     if (!id) return res.status(400).json({ message: "Switch ID is required" });
     const oldData = await Switch.getById(id);
@@ -98,16 +123,23 @@ const updateSwitch = async (req, res) => {
     if (!oldData) {
       return res.status(404).json({ message: "Switch not found" });
     }
+    const newImage = req.file ? req.file.filename : null;
 
+    if (newImage && oldData.image) {
+      deleteImage(oldData.image);
+    }
     const newData = {
       name,
       ip,
       type,
       location,
       locationDetail,
+      controllerId,
+      merk,
       status,
       detail,
       code,
+      image: newImage || oldData.image,
     };
 
     const affectedRows = await Switch.update(id, newData);
@@ -139,6 +171,9 @@ const deleteSwitch = async (req, res) => {
 
     if (!oldData) {
       return res.status(404).json({ message: "Switch not found" });
+    }
+    if (oldData.image) {
+      deleteImage(oldData.image);
     }
 
     const affectedRows = await Switch.delete(id);

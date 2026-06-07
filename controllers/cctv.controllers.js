@@ -1,5 +1,6 @@
 const CCTV = require("../models/cctv.model");
 const activityLogHelper = require("../helpers/activityLog.helper");
+const { deleteImage } = require("../helpers/file.helper");
 
 const { v4: uuidv4 } = require("uuid");
 
@@ -61,6 +62,7 @@ const createCCTV = async (req, res) => {
       code,
       merk,
     } = req.body;
+    const image = req.file ? req.file.filename : null;
 
     if (!name || !ip)
       return res.status(400).json({ message: "Name and IP are required" });
@@ -79,6 +81,7 @@ const createCCTV = async (req, res) => {
       detail,
       code,
       merk,
+      image,
     };
 
     await CCTV.create(newData);
@@ -123,6 +126,12 @@ const updateCCTV = async (req, res) => {
       return res.status(404).json({ message: "Access Point not found" });
     }
 
+    const newImage = req.file ? req.file.filename : null;
+
+    if (newImage && oldData.image) {
+      deleteImage(oldData.image);
+    }
+
     const newData = {
       name,
       ip,
@@ -134,6 +143,7 @@ const updateCCTV = async (req, res) => {
       detail,
       code,
       merk,
+      image: newImage || oldData.image,
     };
 
     const affectedRows = await CCTV.update(id, newData);
@@ -168,6 +178,9 @@ const deleteCCTV = async (req, res) => {
 
     if (!oldData) {
       return res.status(404).json({ message: "Access Point not found" });
+    }
+    if (oldData.image) {
+      deleteImage(oldData.image);
     }
 
     const affectedRows = await CCTV.delete(id);

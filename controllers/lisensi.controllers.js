@@ -1,4 +1,4 @@
-const IPList = require("../models/ipList.model");
+const Lisensi = require("../models/lisensi.model");
 const activityLogHelper = require("../helpers/activityLog.helper");
 const { v4: uuidv4 } = require("uuid");
 
@@ -14,8 +14,8 @@ const getAll = async (req, res) => {
 
     const offset = (page - 1) * limit;
 
-    const logs = await IPList.getAll(limit, offset);
-    const total = await IPList.getCount();
+    const logs = await Lisensi.getAll(limit, offset);
+    const total = await Lisensi.getCount();
 
     res.status(200).json({
       data: logs,
@@ -34,51 +34,49 @@ const getById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const ip = await IPList.getById(id);
+    const lisensi = await Lisensi.getById(id);
 
-    if (!ip) {
-      return res.status(404).json({ message: "IPList not found" });
+    if (!lisensi) {
+      return res.status(404).json({ message: "Lisensi not found" });
     }
 
-    res.status(200).json(ip);
+    res.status(200).json(lisensi);
   } catch (error) {
-    console.error("Error getting ip list:", error);
+    console.error("Error getting access point:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
 const create = async (req, res) => {
   try {
-    const { ip, kegunaan, author, status } = req.body;
+    const { name, expiredDate } = req.body;
 
-    if (!ip) {
-      return res.status(400).json({ message: "ip are required" });
+    if (!name) {
+      return res.status(400).json({ message: "name are required" });
     }
 
     const id = uuidv4();
 
     const newData = {
       id,
-      ip,
-      kegunaan,
-      author,
-      status,
+      name,
+      expiredDate,
     };
 
-    await IPList.create(newData);
+    await Lisensi.create(newData);
 
     await activityLogHelper({
       userId: req.user?.id ?? req.user?.userId ?? null,
-      module: "ipList",
+      module: "lisensi",
       action: "create",
       targetId: id,
-      description: `Created IPList ${ip}`,
+      description: `Created Lisensi ${name}`,
       newData,
     });
 
-    res.status(201).json({ message: "IPList created", id });
+    res.status(201).json({ message: "Lisensi created", id });
   } catch (error) {
-    console.error("Error creating IPList:", error);
+    console.error("Error creating Lisensi:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -87,64 +85,62 @@ const update = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { ip, kegunaan, author, status } = req.body;
+    const { name, expiredDate } = req.body;
 
-    const oldData = await IPList.getById(id);
+    const oldData = await Lisensi.getById(id);
 
     if (!oldData) {
-      return res.status(404).json({ message: "IPList not found" });
+      return res.status(404).json({ message: "Lisensi not found" });
     }
 
     const newData = {
-      ip,
-      kegunaan,
-      author,
-      status,
+      name,
+      expiredDate,
     };
 
-    await IPList.update(id, newData);
+    await Lisensi.update(id, newData);
 
     await activityLogHelper({
       userId: req.user?.id,
-      module: "ipList",
+      module: "lisensi",
       action: "update",
       targetId: id,
-      description: `Updated IPList ${ip || oldData.ip}`,
+      description: `Updated Lisensi ${name || oldData.name}`,
       oldData,
       newData,
     });
 
-    res.status(200).json({ message: "IPList updated" });
+    res.status(200).json({ message: "Lisensi updated" });
   } catch (error) {
-    console.error("Error updating IPList:", error);
+    console.error("Error updating Lisensi:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
-const deleteIP = async (req, res) => {
+const deleteLisensi = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const oldData = await IPList.getById(id);
+    const oldData = await Lisensi.getById(id);
 
     if (!oldData) {
-      return res.status(404).json({ message: "IPList not found" });
+      return res.status(404).json({ message: "Lisensi not found" });
     }
 
-    await IPList.delete(id);
+    await Lisensi.delete(id);
 
     await activityLogHelper({
       userId: req.user?.id ?? req.user?.userId ?? null,
-      module: "ipList",
+      module: "lisensi",
       action: "delete",
       targetId: id,
-      description: `Deleted IPList ${oldData.ip}`,
+      description: `Deleted Lisensi ${oldData.name}`,
       oldData,
     });
 
-    res.status(200).json({ message: "IPList deleted" });
+    res.status(200).json({ message: "Lisensi deleted" });
   } catch (error) {
-    console.error("Error deleting IPList:", error);
+    console.error("Error deleting Lisensi:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -154,5 +150,5 @@ module.exports = {
   getById,
   create,
   update,
-  deleteIP,
+  deleteLisensi,
 };

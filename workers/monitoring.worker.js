@@ -57,7 +57,7 @@ const runMonitoring = async () => {
           let newStatus = "offline";
 
           if (result.alive) {
-            if (result.time && result.time > 100) {
+            if (result.time && result.time > 30) {
               newStatus = "warning";
             } else {
               newStatus = "online";

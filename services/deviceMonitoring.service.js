@@ -56,7 +56,7 @@ const getAllDevicesMonitoringService = async () => {
     await Promise.all([
       Host.getAll(),
       Physical.getAll(),
-      Switch.getAll(),
+      Switch.getAllForMonitoring(),
       Router.getAll(),
       CCTVController.getAllForMonitoring(),
       AccessPointController.getAllForMonitoring(),

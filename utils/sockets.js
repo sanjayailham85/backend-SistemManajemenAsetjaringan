@@ -1,10 +1,14 @@
 let io = null;
 
+const allowedOrigins = ["http://localhost:5173", ""];
 const initSocket = (server) => {
   const { Server } = require("socket.io");
 
   io = new Server(server, {
-    cors: { origin: "*" },
+    cors: {
+      origin: allowedOrigins,
+      methods: ["GET", "POST"],
+    },
   });
 
   return io;
