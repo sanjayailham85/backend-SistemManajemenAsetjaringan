@@ -224,9 +224,7 @@ const runMonitoring = async () => {
             lastSeen: new Date(),
           };
 
-          if (oldStatus !== newStatus) {
-            changedDevices.push(updatedDevice);
-          }
+          changedDevices.push(updatedDevice);
 
           previousStatuses[device.id] = newStatus;
           updatedDevices.push(updatedDevice);
