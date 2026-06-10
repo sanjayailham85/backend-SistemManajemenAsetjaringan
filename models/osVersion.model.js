@@ -6,7 +6,7 @@ const OsVersion = {
     const safeOffset = Math.max(0, parseInt(offset, 10) || 0);
     const [rows] = await db.query(
       `
-  SELECT * FROM osVersion
+  SELECT * FROM osversion
   ORDER BY name ASC
   LIMIT ? OFFSET ?
   `,
@@ -16,13 +16,13 @@ const OsVersion = {
   },
 
   getCount: async () => {
-    const [rows] = await db.query(`SELECT COUNT(*) as total FROM osVersion`);
+    const [rows] = await db.query(`SELECT COUNT(*) as total FROM osversion`);
 
     return rows[0].total;
   },
 
   getOsVersionById: async (id) => {
-    const [rows] = await db.query("SELECT * FROM osVersion WHERE id = ?", [id]);
+    const [rows] = await db.query("SELECT * FROM osversion WHERE id = ?", [id]);
     return rows[0];
   },
 
@@ -38,7 +38,7 @@ const OsVersion = {
     const values = Object.values(newData);
 
     const [result] = await db.query(
-      `INSERT INTO osVersion (${columns}) VALUES (${placeholders})`,
+      `INSERT INTO osversion (${columns}) VALUES (${placeholders})`,
       values
     );
 
@@ -57,7 +57,7 @@ const OsVersion = {
     const values = [...Object.values(updatedData), id];
 
     const [result] = await db.query(
-      `UPDATE osVersion SET ${columns} WHERE id = ?`,
+      `UPDATE osversion SET ${columns} WHERE id = ?`,
       values
     );
 
@@ -65,7 +65,7 @@ const OsVersion = {
   },
 
   delete: async (id) => {
-    const [result] = await db.query("DELETE FROM osVersion WHERE id = ?", [id]);
+    const [result] = await db.query("DELETE FROM osversion WHERE id = ?", [id]);
     return result.affectedRows;
   },
 };
