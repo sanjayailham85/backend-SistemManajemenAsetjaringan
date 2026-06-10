@@ -187,6 +187,11 @@ const runMonitoring = async () => {
   try {
     const io = getIO();
 
+    if (!io) {
+      console.log("IO not ready");
+      return;
+    }
+
     console.log("RUN MONITORING TICK");
 
     if (!cachedDevices.length) return;
@@ -202,6 +207,7 @@ const runMonitoring = async () => {
           const result = await pingDevice(device.ip);
 
           console.log("PING:", device.ip, result);
+
           let newStatus = "offline";
 
           if (result.alive) {
@@ -242,18 +248,17 @@ const runMonitoring = async () => {
 const setupMonitoringSocket = () => {
   const io = getIO();
 
+  if (!io) {
+    console.log("Socket not initialized");
+    return;
+  }
+
   io.on("connection", async (socket) => {
     console.log("Client connected:", socket.id);
 
     await refreshDevices();
 
     socket.emit("monitoring:init", cachedDevices);
-
-    socket.on("request:init", async () => {
-      await refreshDevices();
-      socket.emit("monitoring:init", cachedDevices);
-      io.emit("monitoring:update", cachedDevices);
-    });
   });
 };
 
