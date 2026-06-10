@@ -1,3 +1,142 @@
+// const {
+//   getAllDevicesMonitoringService,
+// } = require("../services/deviceMonitoring.service");
+// const { pingDevice } = require("../utils/pingDevices");
+// const { getIO } = require("../utils/sockets");
+
+// let cachedDevices = [];
+// let previousStatuses = {};
+
+// const REFRESH_INTERVAL = 60000;
+// const MONITOR_INTERVAL = 10000;
+// const CONCURRENT_LIMIT = 10;
+
+// const refreshDevices = async () => {
+//   try {
+//     const devices = await getAllDevicesMonitoringService();
+
+//     cachedDevices = devices.map((device) => ({
+//       ...device,
+//       monitoringStatus:
+//         previousStatuses[device.id] || device.monitoringStatus || "offline",
+//     }));
+
+//     const currentIds = new Set(devices.map((d) => d.id));
+//     Object.keys(previousStatuses).forEach((id) => {
+//       if (!currentIds.has(Number(id))) {
+//         delete previousStatuses[id];
+//       }
+//     });
+
+//     console.log("Devices refreshed:", cachedDevices.length);
+//   } catch (err) {
+//     console.error("Refresh devices error:", err.message);
+//   }
+// };
+
+// const chunkArray = (array, size) => {
+//   const chunks = [];
+//   for (let i = 0; i < array.length; i += size) {
+//     chunks.push(array.slice(i, i + size));
+//   }
+//   return chunks;
+// };
+
+// const runMonitoring = async () => {
+//   try {
+//     const io = getIO();
+
+//     console.log("RUN MONITORING TICK");
+
+//     if (!cachedDevices.length) return;
+
+//     const batches = chunkArray(cachedDevices, CONCURRENT_LIMIT);
+//     const changedDevices = [];
+//     const updatedDevices = [];
+
+//     for (const batch of batches) {
+//       await Promise.all(
+//         batch.map(async (device) => {
+//           const result = await pingDevice(device.ip);
+
+//           let newStatus = "offline";
+
+//           if (result.alive) {
+//             newStatus = result.time && result.time > 30 ? "warning" : "online";
+//           }
+
+//           const updatedDevice = {
+//             ...device,
+//             status: newStatus,
+//             monitoringStatus: newStatus,
+//             ping: result.time,
+//             lastSeen: new Date(),
+//           };
+
+//           const oldStatus = previousStatuses[device.id];
+
+//           if (oldStatus !== newStatus) {
+//             changedDevices.push(updatedDevice);
+//           }
+
+//           previousStatuses[device.id] = newStatus;
+//           updatedDevices.push(updatedDevice);
+//         })
+//       );
+//     }
+
+//     cachedDevices = updatedDevices;
+
+//     if (changedDevices.length > 0) {
+//       console.log("Device updated:", changedDevices.length);
+//       io.emit("monitoring:update", changedDevices);
+//     }
+//   } catch (err) {
+//     console.error("Monitoring error:", err.message);
+//   }
+// };
+
+// const setupMonitoringSocket = () => {
+//   const io = getIO();
+
+//   io.on("connection", async (socket) => {
+//     console.log("Client connected:", socket.id);
+
+//     await refreshDevices();
+
+//     socket.emit("monitoring:init", cachedDevices);
+
+//     socket.on("request:init", async () => {
+//       await refreshDevices();
+//       socket.emit("monitoring:init", cachedDevices);
+//     });
+//   });
+// };
+
+// setInterval(() => {
+//   refreshDevices().catch((e) =>
+//     console.error("refreshDevices error:", e.message)
+//   );
+// }, REFRESH_INTERVAL);
+
+// setInterval(() => {
+//   runMonitoring().catch((e) =>
+//     console.error("runMonitoring error:", e.message)
+//   );
+// }, MONITOR_INTERVAL);
+
+// (async () => {
+//   await refreshDevices();
+
+//   setupMonitoringSocket();
+
+//   setTimeout(() => {
+//     runMonitoring();
+//   }, 2000);
+// })();
+
+// module.exports = runMonitoring;
+
 const {
   getAllDevicesMonitoringService,
 } = require("../services/deviceMonitoring.service");
@@ -15,18 +154,22 @@ const refreshDevices = async () => {
   try {
     const devices = await getAllDevicesMonitoringService();
 
-    cachedDevices = devices.map((device) => ({
-      ...device,
-      monitoringStatus:
-        previousStatuses[device.id] || device.monitoringStatus || "offline",
-    }));
+    // sync previousStatuses biar tidak semua dianggap berubah
+    const newStatusMap = {};
 
-    const currentIds = new Set(devices.map((d) => d.id));
-    Object.keys(previousStatuses).forEach((id) => {
-      if (!currentIds.has(Number(id))) {
-        delete previousStatuses[id];
-      }
+    cachedDevices = devices.map((device) => {
+      const prevStatus =
+        previousStatuses[device.id] || device.monitoringStatus || "offline";
+
+      newStatusMap[device.id] = prevStatus;
+
+      return {
+        ...device,
+        monitoringStatus: prevStatus,
+      };
     });
+
+    previousStatuses = newStatusMap;
 
     console.log("Devices refreshed:", cachedDevices.length);
   } catch (err) {
@@ -51,6 +194,7 @@ const runMonitoring = async () => {
     if (!cachedDevices.length) return;
 
     const batches = chunkArray(cachedDevices, CONCURRENT_LIMIT);
+
     const changedDevices = [];
     const updatedDevices = [];
 
@@ -65,6 +209,8 @@ const runMonitoring = async () => {
             newStatus = result.time && result.time > 30 ? "warning" : "online";
           }
 
+          const oldStatus = previousStatuses[device.id];
+
           const updatedDevice = {
             ...device,
             status: newStatus,
@@ -72,8 +218,6 @@ const runMonitoring = async () => {
             ping: result.time,
             lastSeen: new Date(),
           };
-
-          const oldStatus = previousStatuses[device.id];
 
           if (oldStatus !== newStatus) {
             changedDevices.push(updatedDevice);
@@ -113,18 +257,20 @@ const setupMonitoringSocket = () => {
   });
 };
 
+// interval safe
 setInterval(() => {
-  refreshDevices().catch((e) =>
-    console.error("refreshDevices error:", e.message)
+  refreshDevices().catch((err) =>
+    console.error("refreshDevices error:", err.message)
   );
 }, REFRESH_INTERVAL);
 
 setInterval(() => {
-  runMonitoring().catch((e) =>
-    console.error("runMonitoring error:", e.message)
+  runMonitoring().catch((err) =>
+    console.error("runMonitoring error:", err.message)
   );
 }, MONITOR_INTERVAL);
 
+// startup safe order
 (async () => {
   await refreshDevices();
 
