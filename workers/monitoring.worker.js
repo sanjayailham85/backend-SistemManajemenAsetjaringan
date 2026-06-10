@@ -48,19 +48,13 @@ const chunkArray = (array, size) => {
 const runMonitoring = async () => {
   try {
     const io = getIO();
+    if (!io) return;
 
-    if (!io) {
-      console.log("IO not ready");
-      return;
-    }
+    const devices = await getAllDevicesMonitoringService();
 
-    if (!cachedDevices.length) return;
+    const batches = chunkArray(devices, CONCURRENT_LIMIT);
 
-    console.log("RUN MONITORING TICK");
-
-    const batches = chunkArray(cachedDevices, CONCURRENT_LIMIT);
-
-    const newStatusMap = { ...previousStatuses }; // snapshot aman
+    const newStatusMap = { ...previousStatuses };
     const changedDevices = [];
 
     for (const batch of batches) {
@@ -69,54 +63,38 @@ const runMonitoring = async () => {
           const result = await pingDevice(device.ip);
 
           let newStatus = "offline";
-
           if (result.alive) {
             newStatus = result.time && result.time > 30 ? "warning" : "online";
           }
 
-          return {
-            device,
-            result,
-            newStatus,
+          const oldStatus = previousStatuses[device.id];
+
+          const updated = {
+            ...device,
+            status: newStatus,
+            monitoringStatus: newStatus,
+            ping: result.time,
+            lastSeen: new Date(),
           };
+
+          if (oldStatus !== newStatus) {
+            changedDevices.push(updated);
+          }
+
+          newStatusMap[device.id] = newStatus;
+
+          return updated;
         })
       );
-
-      for (const r of results) {
-        const oldStatus = previousStatuses[r.device.id];
-
-        const updatedDevice = {
-          ...r.device,
-          status: r.newStatus,
-          monitoringStatus: r.newStatus,
-          ping: r.result.time,
-          lastSeen: new Date(),
-        };
-
-        // ✔ ONLY PUSH IF CHANGED
-        if (oldStatus !== r.newStatus) {
-          changedDevices.push(updatedDevice);
-        }
-
-        // update snapshot (tapi belum commit global)
-        newStatusMap[r.device.id] = r.newStatus;
-      }
     }
 
-    // ✔ commit state SEKALI SAJA (ini yang penting)
     previousStatuses = newStatusMap;
-    cachedDevices = cachedDevices.map((d) => ({
-      ...d,
-      monitoringStatus: newStatusMap[d.id] ?? d.monitoringStatus,
-    }));
 
-    // ✔ emit hanya perubahan
-    if (changedDevices.length > 0) {
-      console.log("Device updated:", changedDevices.length);
+    if (changedDevices.length) {
       io.emit("monitoring:update", changedDevices);
     }
   } catch (err) {
-    console.error("Monitoring error:", err.message);
+    console.error(err);
   }
 };
 
