@@ -68,36 +68,35 @@ const runMonitoring = async () => {
         batch.map(async (device) => {
           const result = await pingDevice(device.ip);
 
-          // console.log("PING:", device.ip, result);
-
           let newStatus = "offline";
 
           if (result.alive) {
             newStatus = result.time && result.time > 30 ? "warning" : "online";
           }
 
-          const oldStatus = previousStatuses[device.id] || "offline";
-
-          let hasChanged = false;
+          const oldStatus =
+            previousStatuses[device.id] || device.monitoringStatus || "offline";
 
           if (oldStatus !== newStatus) {
-            hasChanged = true;
+            const updatedDevice = {
+              ...device,
+              status: newStatus,
+              monitoringStatus: newStatus,
+              ping: result.time,
+              lastSeen: new Date(),
+            };
+
+            changedDevices.push(updatedDevice);
+            previousStatuses[device.id] = newStatus;
           }
 
-          const updatedDevice = {
+          updatedDevices.push({
             ...device,
             status: newStatus,
             monitoringStatus: newStatus,
             ping: result.time,
             lastSeen: new Date(),
-          };
-
-          if (hasChanged) {
-            changedDevices.push(updatedDevice);
-            previousStatuses[device.id] = newStatus;
-          }
-
-          updatedDevices.push(updatedDevice);
+          });
         })
       );
     }
