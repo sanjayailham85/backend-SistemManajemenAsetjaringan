@@ -11,7 +11,6 @@ const REFRESH_INTERVAL = 60000;
 const MONITOR_INTERVAL = 10000;
 const CONCURRENT_LIMIT = 10;
 
-// refresh daftar device dari database
 const refreshDevices = async () => {
   try {
     const devices = await getAllDevicesMonitoringService();
@@ -28,7 +27,6 @@ const refreshDevices = async () => {
   }
 };
 
-// helper chunk
 const chunkArray = (array, size) => {
   const chunks = [];
   for (let i = 0; i < array.length; i += size) {
@@ -37,10 +35,11 @@ const chunkArray = (array, size) => {
   return chunks;
 };
 
-// monitoring utama
 const runMonitoring = async () => {
   try {
     const io = getIO();
+
+    console.log("RUN MONITORING TICK");
 
     if (!cachedDevices.length) return;
 
@@ -90,7 +89,6 @@ const runMonitoring = async () => {
   }
 };
 
-// kirim data awal saat client connect (FIX UTAMA)
 const setupMonitoringSocket = () => {
   const io = getIO();
 
@@ -108,14 +106,22 @@ const setupMonitoringSocket = () => {
   });
 };
 
-// interval
 setInterval(refreshDevices, REFRESH_INTERVAL);
-setInterval(runMonitoring, MONITOR_INTERVAL);
 
-// startup
+setInterval(async () => {
+  try {
+    await runMonitoring();
+  } catch (err) {
+    console.error("RUN MONITORING CRASH:", err);
+  }
+}, MONITOR_INTERVAL);
+
 refreshDevices().then(() => {
-  runMonitoring();
   setupMonitoringSocket();
+
+  setTimeout(() => {
+    runMonitoring();
+  }, 2000);
 });
 
 module.exports = runMonitoring;
