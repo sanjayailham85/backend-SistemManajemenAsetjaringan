@@ -2,7 +2,6 @@ const express = require("express");
 const http = require("http");
 const cors = require("cors");
 require("dotenv").config();
-require("./workers/monitoring.worker");
 
 const app = express();
 const server = http.createServer(app);
