@@ -33,6 +33,8 @@ app.use("/uploads", express.static("uploads"));
 const { initSocket } = require("./utils/sockets");
 initSocket(server);
 
+require("./workers/monitoring.worker");
+
 // routes
 const rackRoutes = require("./routes/rack.routes");
 const physicalRoutes = require("./routes/physical.routes");
