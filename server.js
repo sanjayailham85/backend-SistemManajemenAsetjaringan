@@ -31,7 +31,16 @@ app.use("/uploads", express.static("uploads"));
 
 // socket
 const { initSocket } = require("./utils/sockets");
-initSocket(server);
+
+const io = initSocket(server);
+
+io.on("connection", (socket) => {
+  console.log("SOCKET CONNECTED SERVER:", socket.id);
+
+  socket.onAny((event, ...args) => {
+    console.log("SOCKET EVENT OUT:", event, args);
+  });
+});
 
 require("./workers/monitoring.worker");
 
