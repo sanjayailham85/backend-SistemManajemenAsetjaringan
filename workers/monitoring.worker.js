@@ -188,8 +188,7 @@ const runMonitoring = async () => {
     const io = getIO();
 
     console.log("RUN MONITORING TICK");
-    const result = await pingDevice(device.ip);
-    console.log("PING:", device.ip, result);
+
     if (!cachedDevices.length) return;
 
     const batches = chunkArray(cachedDevices, CONCURRENT_LIMIT);
@@ -202,6 +201,7 @@ const runMonitoring = async () => {
         batch.map(async (device) => {
           const result = await pingDevice(device.ip);
 
+          console.log("PING:", device.ip, result);
           let newStatus = "offline";
 
           if (result.alive) {
