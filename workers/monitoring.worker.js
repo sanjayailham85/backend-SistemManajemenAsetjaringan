@@ -76,7 +76,13 @@ const runMonitoring = async () => {
             newStatus = result.time && result.time > 30 ? "warning" : "online";
           }
 
-          const oldStatus = previousStatuses[device.id];
+          const oldStatus = previousStatuses[device.id] || "offline";
+
+          let hasChanged = false;
+
+          if (oldStatus !== newStatus) {
+            hasChanged = true;
+          }
 
           const updatedDevice = {
             ...device,
@@ -86,9 +92,11 @@ const runMonitoring = async () => {
             lastSeen: new Date(),
           };
 
-          changedDevices.push(updatedDevice);
+          if (hasChanged) {
+            changedDevices.push(updatedDevice);
+            previousStatuses[device.id] = newStatus;
+          }
 
-          previousStatuses[device.id] = newStatus;
           updatedDevices.push(updatedDevice);
         })
       );
