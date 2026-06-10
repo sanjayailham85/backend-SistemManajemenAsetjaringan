@@ -102,9 +102,9 @@ const runMonitoring = async () => {
 // kirim data awal saat client connect
 const setupMonitoringSocket = () => {
   const io = getIO();
-
+  console.log("INIT SIZE:", cachedDevices.length);
   io.on("connection", (socket) => {
-    socket.emit("monitoring:init", cachedDevices);
+    socket.emit("monitoring:init", cachedDevices || []);
   });
 };
 
@@ -113,9 +113,15 @@ setInterval(refreshDevices, REFRESH_INTERVAL);
 setInterval(runMonitoring, MONITOR_INTERVAL);
 
 // pertama kali
-refreshDevices().then(() => {
-  runMonitoring();
+const startMonitoringSystem = async () => {
+  await refreshDevices();
+
   setupMonitoringSocket();
-});
+
+  setInterval(refreshDevices, 60000);
+  setInterval(runMonitoring, 10000);
+};
+
+startMonitoringSystem();
 
 module.exports = runMonitoring;
