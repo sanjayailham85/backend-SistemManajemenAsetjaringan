@@ -7,9 +7,9 @@ const { getIO } = require("../utils/sockets");
 let cachedDevices = [];
 let previousStatuses = {};
 
-const REFRESH_INTERVAL = 60000; // refresh DB 1 menit
-const MONITOR_INTERVAL = 10000; // cek status 10 detik
-const CONCURRENT_LIMIT = 10; // maksimal 10 ping bersamaan
+const REFRESH_INTERVAL = 60000;
+const MONITOR_INTERVAL = 10000;
+const CONCURRENT_LIMIT = 10;
 
 // refresh daftar device dari database
 const refreshDevices = async () => {
@@ -28,14 +28,12 @@ const refreshDevices = async () => {
   }
 };
 
-// helper membagi array per batch
+// helper chunk
 const chunkArray = (array, size) => {
   const chunks = [];
-
   for (let i = 0; i < array.length; i += size) {
     chunks.push(array.slice(i, i + size));
   }
-
   return chunks;
 };
 
@@ -51,17 +49,14 @@ const runMonitoring = async () => {
     const updatedDevices = [];
 
     for (const batch of batches) {
-      const batchResults = await Promise.all(
+      await Promise.all(
         batch.map(async (device) => {
           const result = await pingDevice(device.ip);
+
           let newStatus = "offline";
 
           if (result.alive) {
-            if (result.time && result.time > 30) {
-              newStatus = "warning";
-            } else {
-              newStatus = "online";
-            }
+            newStatus = result.time && result.time > 30 ? "warning" : "online";
           }
 
           const updatedDevice = {
@@ -80,16 +75,12 @@ const runMonitoring = async () => {
 
           previousStatuses[device.id] = newStatus;
           updatedDevices.push(updatedDevice);
-
-          return updatedDevice;
         })
       );
     }
 
-    // update cache seluruh device
     cachedDevices = updatedDevices;
 
-    // kirim hanya yang berubah
     if (changedDevices.length > 0) {
       console.log("Device updated:", changedDevices.length);
       io.emit("monitoring:update", changedDevices);
@@ -99,12 +90,21 @@ const runMonitoring = async () => {
   }
 };
 
-// kirim data awal saat client connect
+// kirim data awal saat client connect (FIX UTAMA)
 const setupMonitoringSocket = () => {
   const io = getIO();
 
-  io.on("connection", (socket) => {
+  io.on("connection", async (socket) => {
+    console.log("Client connected:", socket.id);
+
+    await refreshDevices();
+
     socket.emit("monitoring:init", cachedDevices);
+
+    socket.on("request:init", async () => {
+      await refreshDevices();
+      socket.emit("monitoring:init", cachedDevices);
+    });
   });
 };
 
@@ -112,7 +112,7 @@ const setupMonitoringSocket = () => {
 setInterval(refreshDevices, REFRESH_INTERVAL);
 setInterval(runMonitoring, MONITOR_INTERVAL);
 
-// pertama kali
+// startup
 refreshDevices().then(() => {
   runMonitoring();
   setupMonitoringSocket();
