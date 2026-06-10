@@ -19,7 +19,7 @@ const Physical = {
     const safeOffset = Math.max(0, parseInt(offset, 10) || 0);
     const [rows] = await db.query(
       `
-  SELECT * FROM physicalServer
+  SELECT * FROM physicalserver
   ORDER BY name ASC
   LIMIT ? OFFSET ?
   `,
@@ -30,14 +30,14 @@ const Physical = {
 
   getCount: async () => {
     const [rows] = await db.query(
-      `SELECT COUNT(*) as total FROM physicalServer`
+      `SELECT COUNT(*) as total FROM physicalserver`
     );
 
     return rows[0].total;
   },
 
   getById: async (id) => {
-    const [rows] = await db.query("SELECT * FROM physicalServer WHERE id = ?", [
+    const [rows] = await db.query("SELECT * FROM physicalserver WHERE id = ?", [
       id,
     ]);
     return rows[0];
@@ -45,7 +45,7 @@ const Physical = {
 
   getByRackId: async (rackId) => {
     const [rows] = await db.query(
-      "SELECT id FROM physicalServer WHERE rackId = ?",
+      "SELECT id FROM physicalserver WHERE rackId = ?",
       [rackId]
     );
     return rows;
@@ -95,7 +95,7 @@ const Physical = {
   },
 
   delete: async (id) => {
-    const [result] = await db.query("DELETE FROM physicalServer WHERE id = ?", [
+    const [result] = await db.query("DELETE FROM physicalserver WHERE id = ?", [
       id,
     ]);
     return result.affectedRows;

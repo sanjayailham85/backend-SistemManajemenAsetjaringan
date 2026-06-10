@@ -2,7 +2,7 @@ module.exports = {
   physical: {
     query: `
       SELECT name, ip, status, cpu, ram, storage, detail, year
-      FROM physicalServer
+      FROM physicalserver
     `,
     columns: [
       { header: "Nama", key: "name", width: 25 },

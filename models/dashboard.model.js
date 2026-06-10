@@ -4,7 +4,7 @@ const Dashboard = {
   getSummary: async () => {
     const [[rack]] = await db.query("SELECT COUNT(*) as total FROM rack");
     const [[physical]] = await db.query(
-      "SELECT COUNT(*) as total FROM physicalServer"
+      "SELECT COUNT(*) as total FROM physicalserver"
     );
     const [[host]] = await db.query("SELECT COUNT(*) as total FROM host");
     const [[guest]] = await db.query("SELECT COUNT(*) as total FROM guest");

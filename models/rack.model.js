@@ -21,7 +21,7 @@ const Rack = {
         r.*,
         COUNT(t.id) AS total
       FROM rack r
-      LEFT JOIN physicalServer t ON t.rackId = r.id
+      LEFT JOIN physicalserver t ON t.rackId = r.id
       GROUP BY r.id
       ORDER BY r.name ASC
       LIMIT ? OFFSET ?
