@@ -21,9 +21,9 @@ const Guest = {
       SELECT 
         g.*,
         o.name AS osName,
-        o.version AS osVersion
+        o.version AS osversion
       FROM guest g
-      LEFT JOIN osVersion o ON g.osVersion = o.id
+      LEFT JOIN osversion o ON g.osversion = o.id
       LIMIT ? OFFSET ?
     `,
       [safeLimit, safeOffset]
@@ -43,9 +43,9 @@ const Guest = {
       SELECT 
         g.*,
         o.name AS osName,
-        o.version AS osVersion
+        o.version AS osversion
       FROM guest g
-      LEFT JOIN osVersion o ON g.osVersion = o.id
+      LEFT JOIN osversion o ON g.osversion = o.id
       WHERE g.id = ?
       `,
       [id]

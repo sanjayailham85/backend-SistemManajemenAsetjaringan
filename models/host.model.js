@@ -21,9 +21,9 @@ const Host = {
       SELECT 
         h.*,
         o.name AS osName,
-        o.version AS osVersion
+        o.version AS osversion
       FROM host h
-      LEFT JOIN osVersion o ON h.version = o.id
+      LEFT JOIN osversion o ON h.version = o.id
       LIMIT ? OFFSET ?
     `,
       [safeLimit, safeOffset]
@@ -43,9 +43,9 @@ const Host = {
       SELECT 
         h.*,
         o.name AS osName,
-        o.version AS osVersion
+        o.version AS osversion
       FROM host h
-      LEFT JOIN osVersion o ON h.version = o.id
+      LEFT JOIN osversion o ON h.version = o.id
       WHERE h.id = ?
       `,
       [id]
