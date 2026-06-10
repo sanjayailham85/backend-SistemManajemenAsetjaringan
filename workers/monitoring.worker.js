@@ -21,6 +21,13 @@ const refreshDevices = async () => {
         previousStatuses[device.id] || device.monitoringStatus || "offline",
     }));
 
+    const currentIds = new Set(devices.map((d) => d.id));
+    Object.keys(previousStatuses).forEach((id) => {
+      if (!currentIds.has(Number(id))) {
+        delete previousStatuses[id];
+      }
+    });
+
     console.log("Devices refreshed:", cachedDevices.length);
   } catch (err) {
     console.error("Refresh devices error:", err.message);
@@ -106,22 +113,26 @@ const setupMonitoringSocket = () => {
   });
 };
 
-setInterval(refreshDevices, REFRESH_INTERVAL);
+setInterval(() => {
+  refreshDevices().catch((e) =>
+    console.error("refreshDevices error:", e.message)
+  );
+}, REFRESH_INTERVAL);
 
-setInterval(async () => {
-  try {
-    await runMonitoring();
-  } catch (err) {
-    console.error("RUN MONITORING CRASH:", err);
-  }
+setInterval(() => {
+  runMonitoring().catch((e) =>
+    console.error("runMonitoring error:", e.message)
+  );
 }, MONITOR_INTERVAL);
 
-refreshDevices().then(() => {
+(async () => {
+  await refreshDevices();
+
   setupMonitoringSocket();
 
   setTimeout(() => {
     runMonitoring();
   }, 2000);
-});
+})();
 
 module.exports = runMonitoring;
