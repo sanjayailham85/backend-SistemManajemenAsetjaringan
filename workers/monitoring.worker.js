@@ -11,19 +11,25 @@ const REFRESH_INTERVAL = 60000;
 const MONITOR_INTERVAL = 10000;
 const CONCURRENT_LIMIT = 10;
 
-/**
- * REFRESH DEVICE LIST (TIDAK SENTUH STATUS MONITORING)
- */
 const refreshDevices = async () => {
   try {
     const devices = await getAllDevicesMonitoringService();
 
-    // HANYA refresh device list, jangan override status hasil monitoring
-    cachedDevices = devices.map((device) => ({
-      ...device,
-      monitoringStatus:
-        previousStatuses[device.id] ?? device.monitoringStatus ?? "offline",
-    }));
+    const newStatusMap = {};
+
+    cachedDevices = devices.map((device) => {
+      const prev =
+        previousStatuses[device.id] || device.monitoringStatus || "offline";
+
+      newStatusMap[device.id] = prev;
+
+      return {
+        ...device,
+        monitoringStatus: prev,
+      };
+    });
+
+    previousStatuses = newStatusMap;
 
     console.log("Devices refreshed:", cachedDevices.length);
   } catch (err) {
@@ -31,9 +37,6 @@ const refreshDevices = async () => {
   }
 };
 
-/**
- * CHUNK HELPER
- */
 const chunkArray = (array, size) => {
   const chunks = [];
   for (let i = 0; i < array.length; i += size) {
@@ -42,34 +45,40 @@ const chunkArray = (array, size) => {
   return chunks;
 };
 
-/**
- * MONITORING LOOP (FIXED DELTA LOGIC)
- */
 const runMonitoring = async () => {
   try {
     const io = getIO();
-    if (!io) return;
 
-    const devices = await getAllDevicesMonitoringService();
+    if (!io) {
+      console.log("IO not ready");
+      return;
+    }
 
-    const batches = chunkArray(devices, CONCURRENT_LIMIT);
+    console.log("RUN MONITORING TICK");
 
-    const newStatusMap = { ...previousStatuses };
+    if (!cachedDevices.length) return;
+
+    const batches = chunkArray(cachedDevices, CONCURRENT_LIMIT);
+
     const changedDevices = [];
+    const updatedDevices = [];
 
     for (const batch of batches) {
-      const results = await Promise.all(
+      await Promise.all(
         batch.map(async (device) => {
           const result = await pingDevice(device.ip);
 
+          // console.log("PING:", device.ip, result);
+
           let newStatus = "offline";
+
           if (result.alive) {
             newStatus = result.time && result.time > 30 ? "warning" : "online";
           }
 
           const oldStatus = previousStatuses[device.id];
 
-          const updated = {
+          const updatedDevice = {
             ...device,
             status: newStatus,
             monitoringStatus: newStatus,
@@ -77,30 +86,25 @@ const runMonitoring = async () => {
             lastSeen: new Date(),
           };
 
-          if (oldStatus !== newStatus) {
-            changedDevices.push(updated);
-          }
+          changedDevices.push(updatedDevice);
 
-          newStatusMap[device.id] = newStatus;
-
-          return updated;
+          previousStatuses[device.id] = newStatus;
+          updatedDevices.push(updatedDevice);
         })
       );
     }
 
-    previousStatuses = newStatusMap;
+    cachedDevices = updatedDevices;
 
-    if (changedDevices.length) {
+    if (changedDevices.length > 0) {
+      console.log("Device updated:", changedDevices.length);
       io.emit("monitoring:update", changedDevices);
     }
   } catch (err) {
-    console.error(err);
+    console.error("Monitoring error:", err.message);
   }
 };
 
-/**
- * SOCKET SETUP
- */
 const setupMonitoringSocket = () => {
   const io = getIO();
 
@@ -114,14 +118,10 @@ const setupMonitoringSocket = () => {
 
     await refreshDevices();
 
-    // FULL SNAPSHOT ONLY FOR INIT (ini aman)
     socket.emit("monitoring:init", cachedDevices);
   });
 };
 
-/**
- * INTERVALS
- */
 setInterval(() => {
   refreshDevices().catch((err) =>
     console.error("refreshDevices error:", err.message)
@@ -134,11 +134,9 @@ setInterval(() => {
   );
 }, MONITOR_INTERVAL);
 
-/**
- * INIT
- */
 (async () => {
   await refreshDevices();
+
   setupMonitoringSocket();
 
   setTimeout(() => {
