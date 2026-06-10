@@ -136,7 +136,6 @@
 // })();
 
 // module.exports = runMonitoring;
-
 const {
   getAllDevicesMonitoringService,
 } = require("../services/deviceMonitoring.service");
@@ -154,18 +153,17 @@ const refreshDevices = async () => {
   try {
     const devices = await getAllDevicesMonitoringService();
 
-    // sync previousStatuses biar tidak semua dianggap berubah
     const newStatusMap = {};
 
     cachedDevices = devices.map((device) => {
-      const prevStatus =
+      const prev =
         previousStatuses[device.id] || device.monitoringStatus || "offline";
 
-      newStatusMap[device.id] = prevStatus;
+      newStatusMap[device.id] = prev;
 
       return {
         ...device,
-        monitoringStatus: prevStatus,
+        monitoringStatus: prev,
       };
     });
 
@@ -257,7 +255,6 @@ const setupMonitoringSocket = () => {
   });
 };
 
-// interval safe
 setInterval(() => {
   refreshDevices().catch((err) =>
     console.error("refreshDevices error:", err.message)
@@ -270,7 +267,6 @@ setInterval(() => {
   );
 }, MONITOR_INTERVAL);
 
-// startup safe order
 (async () => {
   await refreshDevices();
 
