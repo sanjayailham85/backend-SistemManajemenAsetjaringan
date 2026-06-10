@@ -44,7 +44,7 @@ const searchAll = async (req, res) => {
     );
 
     const [accessPoint] = await db.query(
-      "SELECT id, name, ip, location FROM accessPoint WHERE name LIKE ? OR ip LIKE ? OR location LIKE ?",
+      "SELECT id, name, ip, location FROM accesspoint WHERE name LIKE ? OR ip LIKE ? OR location LIKE ?",
       params3
     );
 

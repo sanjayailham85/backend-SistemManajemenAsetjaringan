@@ -6,9 +6,9 @@ const Merk = {
       `
       SELECT 
         m.*,
-        COUNT(c.id) AS totalController
-      FROM accessPointMerk m
-      LEFT JOIN accessPointController c ON c.merkId = m.id
+        COUNT(c.id) AS totalcontroller
+      FROM accesspointmerk m
+      LEFT JOIN accesspointcontroller c ON c.merkId = m.id
       GROUP BY m.id
       ORDER BY m.name ASC
       LIMIT ? OFFSET ?
@@ -21,7 +21,7 @@ const Merk = {
 
   getCount: async () => {
     const [rows] = await db.query(
-      `SELECT COUNT(*) as total FROM accessPointMerk`
+      `SELECT COUNT(*) as total FROM accesspointmerk`
     );
 
     return rows[0].total;
@@ -29,7 +29,7 @@ const Merk = {
 
   getById: async (id) => {
     const [rows] = await db.query(
-      "SELECT * FROM accessPointMerk WHERE id = ?",
+      "SELECT * FROM accesspointmerk WHERE id = ?",
       [id]
     );
     return rows[0];
@@ -47,7 +47,7 @@ const Merk = {
     const values = Object.values(newData);
 
     const [result] = await db.query(
-      `INSERT INTO accessPointMerk (${columns}) VALUES (${placeholders})`,
+      `INSERT INTO accesspointmerk (${columns}) VALUES (${placeholders})`,
       values
     );
 
@@ -66,7 +66,7 @@ const Merk = {
     const values = [...Object.values(updatedData), id];
 
     const [result] = await db.query(
-      `UPDATE accessPointMerk SET ${columns} WHERE id = ?`,
+      `UPDATE accesspointmerk SET ${columns} WHERE id = ?`,
       values
     );
 
@@ -75,7 +75,7 @@ const Merk = {
 
   delete: async (id) => {
     const [result] = await db.query(
-      "DELETE FROM accessPointMerk WHERE id = ?",
+      "DELETE FROM accesspointmerk WHERE id = ?",
       [id]
     );
     return result.affectedRows;

@@ -6,9 +6,9 @@ const AccessPointController = {
       `
       SELECT
         c.*,
-        COUNT(a.id) AS totalAccessPoint
-      FROM accessPointController c
-      LEFT JOIN accessPoint a ON a.controllerId = c.id
+        COUNT(a.id) AS totalaccesspoint
+      FROM accesspointcontroller c
+      LEFT JOIN accesspoint a ON a.controllerId = c.id
       WHERE c.merkId = ?
       GROUP BY c.id
       ORDER BY c.ip ASC
@@ -21,7 +21,7 @@ const AccessPointController = {
   },
   getAllForMonitoring: async () => {
     const [rows] = await db.query(`
-      SELECT * FROM accessPointController
+      SELECT * FROM accesspointcontroller
       ORDER BY ip ASC
     `);
 
@@ -32,7 +32,7 @@ const AccessPointController = {
     const [rows] = await db.query(
       `
       SELECT COUNT(*) as total
-      FROM accessPointController
+      FROM accesspointcontroller
       WHERE merkId = ?
       `,
       [merkId]
@@ -43,14 +43,14 @@ const AccessPointController = {
 
   getById: async (id) => {
     const [rows] = await db.query(
-      "SELECT * FROM accessPointController WHERE id = ?",
+      "SELECT * FROM accesspointcontroller WHERE id = ?",
       [id]
     );
     return rows[0];
   },
   getByMerkId: async (merkId) => {
     const [rows] = await db.query(
-      "SELECT id FROM accessPointController WHERE merkId = ?",
+      "SELECT id FROM accesspointcontroller WHERE merkId = ?",
       [merkId]
     );
     return rows;
@@ -67,7 +67,7 @@ const AccessPointController = {
     const values = Object.values(newData);
 
     const [result] = await db.query(
-      `INSERT INTO accessPointController (${columns}) VALUES (${placeholders})`,
+      `INSERT INTO accesspointcontroller (${columns}) VALUES (${placeholders})`,
       values
     );
 
@@ -86,7 +86,7 @@ const AccessPointController = {
     const values = [...Object.values(updatedData), id];
 
     const [result] = await db.query(
-      `UPDATE accessPointController SET ${columns} WHERE id = ?`,
+      `UPDATE accesspointcontroller SET ${columns} WHERE id = ?`,
       values
     );
 
@@ -95,7 +95,7 @@ const AccessPointController = {
 
   delete: async (id) => {
     const [result] = await db.query(
-      "DELETE FROM accessPointController WHERE id = ?",
+      "DELETE FROM accesspointcontroller WHERE id = ?",
       [id]
     );
     return result.affectedRows;

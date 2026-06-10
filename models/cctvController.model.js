@@ -6,8 +6,8 @@ const CCTVController = {
       `
       SELECT
         c.*,
-        COUNT(a.id) AS totalCCTV
-      FROM cctvController c
+        COUNT(a.id) AS totalcctv
+      FROM cctvcontroller c
       LEFT JOIN cctv a ON a.controllerId = c.id
       WHERE c.merkId = ?
       GROUP BY c.id
@@ -22,7 +22,7 @@ const CCTVController = {
 
   getAllForMonitoring: async () => {
     const [rows] = await db.query(`
-      SELECT * FROM cctvController
+      SELECT * FROM cctvcontroller
       ORDER BY ip ASC
     `);
 
@@ -33,7 +33,7 @@ const CCTVController = {
     const [rows] = await db.query(
       `
       SELECT COUNT(*) as total
-      FROM cctvController
+      FROM cctvcontroller
       WHERE merkId = ?
       `,
       [merkId]
@@ -43,14 +43,14 @@ const CCTVController = {
   },
 
   getById: async (id) => {
-    const [rows] = await db.query("SELECT * FROM cctvController WHERE id = ?", [
+    const [rows] = await db.query("SELECT * FROM cctvcontroller WHERE id = ?", [
       id,
     ]);
     return rows[0];
   },
   getByMerkId: async (merkId) => {
     const [rows] = await db.query(
-      "SELECT id FROM cctvController WHERE merkId = ?",
+      "SELECT id FROM cctvcontroller WHERE merkId = ?",
       [merkId]
     );
     return rows;
@@ -68,7 +68,7 @@ const CCTVController = {
     const values = Object.values(newData);
 
     const [result] = await db.query(
-      `INSERT INTO cctvController (${columns}) VALUES (${placeholders})`,
+      `INSERT INTO cctvcontroller (${columns}) VALUES (${placeholders})`,
       values
     );
 
@@ -87,7 +87,7 @@ const CCTVController = {
     const values = [...Object.values(updatedData), id];
 
     const [result] = await db.query(
-      `UPDATE cctvController SET ${columns} WHERE id = ?`,
+      `UPDATE cctvcontroller SET ${columns} WHERE id = ?`,
       values
     );
 
@@ -95,7 +95,7 @@ const CCTVController = {
   },
 
   delete: async (id) => {
-    const [result] = await db.query("DELETE FROM cctvController WHERE id = ?", [
+    const [result] = await db.query("DELETE FROM cctvcontroller WHERE id = ?", [
       id,
     ]);
     return result.affectedRows;

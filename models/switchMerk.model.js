@@ -6,9 +6,9 @@ const SwitchMerk = {
       `
       SELECT 
         m.*,
-        COUNT(c.id) AS totalController
-      FROM switchMerk m
-      LEFT JOIN switchController c ON c.merkId = m.id
+        COUNT(c.id) AS totalcontroller
+      FROM switchmerk m
+      LEFT JOIN switchcontroller c ON c.merkId = m.id
       GROUP BY m.id
       ORDER BY m.name ASC
       LIMIT ? OFFSET ?
@@ -20,13 +20,13 @@ const SwitchMerk = {
   },
 
   getCount: async () => {
-    const [rows] = await db.query(`SELECT COUNT(*) as total FROM switchMerk`);
+    const [rows] = await db.query(`SELECT COUNT(*) as total FROM switchmerk`);
 
     return rows[0].total;
   },
 
   getById: async (id) => {
-    const [rows] = await db.query("SELECT * FROM switchMerk WHERE id = ?", [
+    const [rows] = await db.query("SELECT * FROM switchmerk WHERE id = ?", [
       id,
     ]);
     return rows[0];
@@ -44,7 +44,7 @@ const SwitchMerk = {
     const values = Object.values(newData);
 
     const [result] = await db.query(
-      `INSERT INTO switchMerk (${columns}) VALUES (${placeholders})`,
+      `INSERT INTO switchmerk (${columns}) VALUES (${placeholders})`,
       values
     );
 
@@ -63,7 +63,7 @@ const SwitchMerk = {
     const values = [...Object.values(updatedData), id];
 
     const [result] = await db.query(
-      `UPDATE switchMerk SET ${columns} WHERE id = ?`,
+      `UPDATE switchmerk SET ${columns} WHERE id = ?`,
       values
     );
 
@@ -71,7 +71,7 @@ const SwitchMerk = {
   },
 
   delete: async (id) => {
-    const [result] = await db.query("DELETE FROM switchMerk WHERE id = ?", [
+    const [result] = await db.query("DELETE FROM switchmerk WHERE id = ?", [
       id,
     ]);
     return result.affectedRows;

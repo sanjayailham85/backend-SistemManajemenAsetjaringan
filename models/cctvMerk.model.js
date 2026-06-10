@@ -6,9 +6,9 @@ const CCTVMerk = {
       `
       SELECT 
         m.*,
-        COUNT(c.id) AS totalController
-      FROM cctvMerk m
-      LEFT JOIN cctvController c ON c.merkId = m.id
+        COUNT(c.id) AS totalcontroller
+      FROM cctvmerk m
+      LEFT JOIN cctvcontroller c ON c.merkId = m.id
       GROUP BY m.id
       ORDER BY m.name ASC
       LIMIT ? OFFSET ?
@@ -20,13 +20,13 @@ const CCTVMerk = {
   },
 
   getCount: async () => {
-    const [rows] = await db.query(`SELECT COUNT(*) as total FROM cctvMerk`);
+    const [rows] = await db.query(`SELECT COUNT(*) as total FROM cctvmerk`);
 
     return rows[0].total;
   },
 
   getById: async (id) => {
-    const [rows] = await db.query("SELECT * FROM cctvMerk WHERE id = ?", [id]);
+    const [rows] = await db.query("SELECT * FROM cctvmerk WHERE id = ?", [id]);
     return rows[0];
   },
 
@@ -42,7 +42,7 @@ const CCTVMerk = {
     const values = Object.values(newData);
 
     const [result] = await db.query(
-      `INSERT INTO cctvMerk (${columns}) VALUES (${placeholders})`,
+      `INSERT INTO cctvmerk (${columns}) VALUES (${placeholders})`,
       values
     );
 
@@ -61,7 +61,7 @@ const CCTVMerk = {
     const values = [...Object.values(updatedData), id];
 
     const [result] = await db.query(
-      `UPDATE cctvMerk SET ${columns} WHERE id = ?`,
+      `UPDATE cctvmerk SET ${columns} WHERE id = ?`,
       values
     );
 
@@ -69,7 +69,7 @@ const CCTVMerk = {
   },
 
   delete: async (id) => {
-    const [result] = await db.query("DELETE FROM cctvMerk WHERE id = ?", [id]);
+    const [result] = await db.query("DELETE FROM cctvmerk WHERE id = ?", [id]);
     return result.affectedRows;
   },
 };

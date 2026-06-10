@@ -6,8 +6,8 @@ const SwitchController = {
       `
       SELECT
         c.*,
-        COUNT(a.id) AS totalSwitch
-      FROM switchController c
+        COUNT(a.id) AS totalswitch
+      FROM switchcontroller c
       LEFT JOIN switch a ON a.controllerId = c.id
       WHERE c.merkId = ?
       GROUP BY c.id
@@ -22,7 +22,7 @@ const SwitchController = {
 
   getAllForMonitoring: async () => {
     const [rows] = await db.query(`
-      SELECT * FROM switchController
+      SELECT * FROM switchcontroller
       ORDER BY ip ASC
     `);
 
@@ -33,7 +33,7 @@ const SwitchController = {
     const [rows] = await db.query(
       `
       SELECT COUNT(*) as total
-      FROM switchController
+      FROM switchcontroller
       WHERE merkId = ?
       `,
       [merkId]
@@ -44,14 +44,14 @@ const SwitchController = {
 
   getById: async (id) => {
     const [rows] = await db.query(
-      "SELECT * FROM switchController WHERE id = ?",
+      "SELECT * FROM switchcontroller WHERE id = ?",
       [id]
     );
     return rows[0];
   },
   getByMerkId: async (merkId) => {
     const [rows] = await db.query(
-      "SELECT id FROM switchController WHERE merkId = ?",
+      "SELECT id FROM switchcontroller WHERE merkId = ?",
       [merkId]
     );
     return rows;
@@ -69,7 +69,7 @@ const SwitchController = {
     const values = Object.values(newData);
 
     const [result] = await db.query(
-      `INSERT INTO switchController (${columns}) VALUES (${placeholders})`,
+      `INSERT INTO switchcontroller (${columns}) VALUES (${placeholders})`,
       values
     );
 
@@ -88,7 +88,7 @@ const SwitchController = {
     const values = [...Object.values(updatedData), id];
 
     const [result] = await db.query(
-      `UPDATE switchController SET ${columns} WHERE id = ?`,
+      `UPDATE switchcontroller SET ${columns} WHERE id = ?`,
       values
     );
 
@@ -97,7 +97,7 @@ const SwitchController = {
 
   delete: async (id) => {
     const [result] = await db.query(
-      "DELETE FROM switchController WHERE id = ?",
+      "DELETE FROM switchcontroller WHERE id = ?",
       [id]
     );
     return result.affectedRows;

@@ -19,7 +19,7 @@ module.exports = {
   accessPoint: {
     query: `
         SELECT name, ip, type, tahunAnggaran, location, locationDetail
-        FROM accessPoint
+        FROM accesspoint
       `,
     columns: [
       { header: "Name", key: "name", width: 25 },

@@ -16,7 +16,7 @@ const AccessPoint = {
   getAll: async (limit, offset, controllerId) => {
     const [rows] = await db.query(
       `
-      SELECT * FROM accessPoint
+      SELECT * FROM accesspoint
       WHERE controllerId = ?
       ORDER BY name ASC
       LIMIT ? OFFSET ?
@@ -31,7 +31,7 @@ const AccessPoint = {
     const [rows] = await db.query(
       `
       SELECT COUNT(*) as total
-      FROM accessPoint
+      FROM accesspoint
       WHERE controllerId = ?
       `,
       [controllerId]
@@ -41,14 +41,14 @@ const AccessPoint = {
   },
 
   getById: async (id) => {
-    const [rows] = await db.query("SELECT * FROM accessPoint WHERE id = ?", [
+    const [rows] = await db.query("SELECT * FROM accesspoint WHERE id = ?", [
       id,
     ]);
     return rows[0];
   },
   getByControllerId: async (controllerId) => {
     const [rows] = await db.query(
-      "SELECT id FROM accessPoint WHERE controllerId = ?",
+      "SELECT id FROM accesspoint WHERE controllerId = ?",
       [controllerId]
     );
     return rows;
@@ -71,7 +71,7 @@ const AccessPoint = {
     const values = Object.values(newData);
 
     const [result] = await db.query(
-      `INSERT INTO accessPoint (${columns}) VALUES (${placeholders})`,
+      `INSERT INTO accesspoint (${columns}) VALUES (${placeholders})`,
       values
     );
     return result;
@@ -91,14 +91,14 @@ const AccessPoint = {
     const values = [...Object.values(updatedData), id];
 
     const [result] = await db.query(
-      `UPDATE accessPoint SET ${columns} WHERE id = ?`,
+      `UPDATE accesspoint SET ${columns} WHERE id = ?`,
       values
     );
     return result.affectedRows;
   },
 
   delete: async (id) => {
-    const [result] = await db.query("DELETE FROM accessPoint WHERE id = ?", [
+    const [result] = await db.query("DELETE FROM accesspoint WHERE id = ?", [
       id,
     ]);
     return result.affectedRows;

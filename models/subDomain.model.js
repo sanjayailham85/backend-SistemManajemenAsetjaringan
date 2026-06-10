@@ -6,7 +6,7 @@ const SubDomain = {
     const safeOffset = Math.max(0, parseInt(offset, 10) || 0);
     const [rows] = await db.query(
       `
-  SELECT * FROM subDomain
+  SELECT * FROM subdomain
   ORDER BY name ASC
   LIMIT ? OFFSET ?
   `,
@@ -16,13 +16,13 @@ const SubDomain = {
   },
 
   getCount: async () => {
-    const [rows] = await db.query(`SELECT COUNT(*) as total FROM subDomain`);
+    const [rows] = await db.query(`SELECT COUNT(*) as total FROM subdomain`);
 
     return rows[0].total;
   },
 
   getById: async (id) => {
-    const [rows] = await db.query("SELECT * FROM subDomain WHERE id = ?", [id]);
+    const [rows] = await db.query("SELECT * FROM subdomain WHERE id = ?", [id]);
     return rows[0];
   },
 
@@ -38,7 +38,7 @@ const SubDomain = {
     const values = Object.values(newData);
 
     const [result] = await db.query(
-      `INSERT INTO subDomain (${columns}) VALUES (${placeholders})`,
+      `INSERT INTO subdomain (${columns}) VALUES (${placeholders})`,
       values
     );
 
@@ -57,7 +57,7 @@ const SubDomain = {
     const values = [...Object.values(updatedData), id];
 
     const [result] = await db.query(
-      `UPDATE subDomain SET ${columns} WHERE id = ?`,
+      `UPDATE subdomain SET ${columns} WHERE id = ?`,
       values
     );
 
@@ -65,7 +65,7 @@ const SubDomain = {
   },
 
   delete: async (id) => {
-    const [result] = await db.query("DELETE FROM subDomain WHERE id = ?", [id]);
+    const [result] = await db.query("DELETE FROM subdomain WHERE id = ?", [id]);
     return result.affectedRows;
   },
 };

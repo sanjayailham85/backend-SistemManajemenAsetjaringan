@@ -14,12 +14,12 @@ const Dashboard = {
       "SELECT COUNT(*) as total FROM switch"
     );
     const [[accessPoint]] = await db.query(
-      "SELECT COUNT(*) as total FROM accessPoint"
+      "SELECT COUNT(*) as total FROM accesspoint"
     );
     const [[cctv]] = await db.query("SELECT COUNT(*) as total FROM cctv");
 
     const tables = [
-      "physicalServer",
+      "physicalserver",
       "host",
       "guest",
       "router",
@@ -61,22 +61,22 @@ const Dashboard = {
 
     const [cctvByMerk] = await db.query(`
       SELECT cm.name AS merk, COUNT(c.id) AS total
-      FROM cctvController c
-      LEFT JOIN cctvMerk cm ON c.merkId = cm.id
+      FROM cctvcontroller c
+      LEFT JOIN cctvmerk cm ON c.merkId = cm.id
       GROUP BY cm.id, cm.name
       `);
 
     const [accessPointByMerk] = await db.query(`
       SELECT apm.name AS merk, COUNT(a.id) AS total
-      FROM accessPointController a
-      LEFT JOIN accessPointMerk apm ON a.merkId = apm.id
+      FROM accesspointcontroller a
+      LEFT JOIN accesspointmerk apm ON a.merkId = apm.id
       GROUP BY apm.id, apm.name
       `);
 
     const [switchByMerk] = await db.query(`
       SELECT sm.name AS merk, COUNT(s.id) AS total
-      FROM switchController s
-      LEFT JOIN switchMerk sm ON s.merkId = sm.id
+      FROM switchcontroller s
+      LEFT JOIN switchmerk sm ON s.merkId = sm.id
       GROUP BY sm.id, sm.name
       `);
 
