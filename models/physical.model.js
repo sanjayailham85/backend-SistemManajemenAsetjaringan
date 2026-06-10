@@ -68,7 +68,7 @@ const Physical = {
     const values = Object.values(newData);
 
     const [result] = await db.query(
-      `INSERT INTO physicalServer (${columns}) VALUES (${placeholders})`,
+      `INSERT INTO physicalserver (${columns}) VALUES (${placeholders})`,
       values
     );
     return result;
@@ -88,7 +88,7 @@ const Physical = {
     const values = [...Object.values(updatedData), id];
 
     const [result] = await db.query(
-      `UPDATE physicalServer SET ${columns} WHERE id = ?`,
+      `UPDATE physicalserver SET ${columns} WHERE id = ?`,
       values
     );
     return result.affectedRows;

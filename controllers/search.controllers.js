@@ -14,7 +14,7 @@ const searchAll = async (req, res) => {
     const params3 = [keyword, keyword, keyword];
 
     const [physical] = await db.query(
-      "SELECT id, name, ip FROM physicalServer WHERE name LIKE ? OR ip LIKE ?",
+      "SELECT id, name, ip FROM physicalserver WHERE name LIKE ? OR ip LIKE ?",
       params2
     );
 
