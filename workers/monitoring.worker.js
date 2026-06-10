@@ -252,6 +252,7 @@ const setupMonitoringSocket = () => {
     socket.on("request:init", async () => {
       await refreshDevices();
       socket.emit("monitoring:init", cachedDevices);
+      io.emit("monitoring:update", cachedDevices);
     });
   });
 };
