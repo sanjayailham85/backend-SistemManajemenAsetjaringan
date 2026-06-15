@@ -83,6 +83,7 @@ const runMonitoring = async () => {
             status: newStatus,
             monitoringStatus: newStatus,
             ping: result.time,
+            ttl: result.ttl,
             lastSeen: new Date(),
           };
 

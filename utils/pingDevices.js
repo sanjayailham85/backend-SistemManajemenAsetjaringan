@@ -9,6 +9,7 @@ const pingDevice = async (ip) => {
     return {
       alive: res.alive,
       time: res.time,
+      ttl: res.ttl,
     };
   } catch (err) {
     return {
